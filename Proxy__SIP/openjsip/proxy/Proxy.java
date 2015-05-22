@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.NDC;
 import org.omg.CORBA.NameValuePair;
+import Messages.*;
 
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpFactory;
@@ -121,6 +122,11 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
     private String locationServiceName;
     private String locationServiceHost;
     private int locationServicePort = 1099;
+    private String ip_source;
+    private String ip_dest;
+    private String port_source;
+    private String port_dest;
+    private String codec;
     
     /**
      * See RFC3261 for Timer C details
@@ -979,7 +985,9 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         ServerTransaction serverTransaction = (operationMode == STATEFULL_MODE ? requestEvent.getServerTransaction() : null);
         String method = request.getMethod();
-
+	    
+	    Invite(method,request);
+	    
         if (log.isDebugEnabled())
         {
             log.debug("-------------------");
@@ -2330,6 +2338,8 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
         ContactHeader contactHeader = (ContactHeader) response.getHeader(ContactHeader.NAME);
 
+        Ok(response,cseqHeader,statusCode);
+        
         if (log.isDebugEnabled())
         {
             log.debug("-------------------");
@@ -2855,6 +2865,225 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
     {
         return true;
     }
+    
+    public void setIp_source(String ip_source) {
+        this.ip_source = ip_source;
+    }
 
+    public void setIp_dest(String ip_dest) {
+        this.ip_dest = ip_dest;
+    }
+    
+    public void setPort_source(String port_source) {
+        this.port_source = port_source;
+    }
+    
+    public void setPort_dest(String port_dest) {
+        this.port_dest = port_dest;
+    }
+    
+    public void setCodec(String codec) {
+        this.codec = codec;
+    }    
+    
+    public String getIp_source() {
+        return this.ip_source;
+    }
+
+    public String getIp_dest() {
+        return this.ip_dest;
+    }
+    
+    public String getPort_source() {
+        return this.port_source;
+    }
+    
+    public String getPort_dest() {
+        return this.port_dest;
+    }
+    
+    public String getCodec() {
+        return this.codec;
+    }
+    
+    public void printFlux() {
+		
+		System.out.println("Flux : @IP_src="+getIp_source()+" @IP_dest="+getIp_dest()+" Port_src="+getPort_source()+" Port_dest="+getPort_dest()+" Codec="+getCodec());
+	}
+    
+    
+    
+    public void Ok(Response response,CSeqHeader cseqHeader,int statusCode)
+    {
+        if(statusCode == 200 && cseqHeader.getMethod().equals(Request.INVITE))
+        {
+        	SIPResponse sr = (SIPResponse)response;
+        	String sdpContent = new String(sr.getRawContent());
+        	String chaine = new String();
+        	String aux = new String();
+    		Pattern p;
+    		Matcher m;
+        	
+        	try{        		
+        		SdpFactory sdpf = SdpFactory.getInstance(); // récupération du message SDP
+        		SessionDescription requestSDP = sdpf.createSessionDescription(sdpContent);
+        		chaine=requestSDP.toString(); // récupération de la chaine à parser
+        		//System.out.println(chaine);
+        		        		
+        		//********************************* RECUPERATION PORT DEST***************************//
+        		try
+        		{
+        			p = Pattern.compile("m=audio [^ ]*"); // recuperation du "media description"
+        			m = p.matcher(chaine);
+        			while(m.find())
+        			{		
+	        			aux = chaine.substring(m.start(),m.end());
+        			}
+        			
+        			p = Pattern.compile("[0-9]+"); // extraction port_dest
+        			m = p.matcher(aux);
+        			while(m.find())
+        			{
+						setPort_dest(aux.substring(m.start(),m.end()));
+        			}
+        			System.out.println("************ Port_dest = "+getPort_dest());       			
+        		}
+        		catch(PatternSyntaxException pse){
+        			System.out.println("ERROR [RECUPERATION PORT DEST]");
+        		}
+        		
+        		//****************************** RECUPERATION CODEC *****************************//
+        		try
+        		{
+        			p = Pattern.compile("RTP/AVP [0-9]*");  // recuperation du "media description"
+        			m = p.matcher(chaine);
+        			while(m.find())
+        			{
+	        			aux = chaine.substring(m.start(),m.end());
+	        			//System.out.println(aux);
+        			}
+        			
+        			p = Pattern.compile("[0-9]+"); // extraction n°codec
+        			m = p.matcher(aux);
+        			while(m.find())
+        			{
+	        			setCodec(aux.substring(m.start(),m.end()));
+        			}
+        			System.out.println("************ Codec = "+getCodec());       			
+        		}
+        		catch(PatternSyntaxException pse){
+        			System.out.println("ERROR [RECUPERATION CODEC]");
+        		}
+        		
+            			
+        		//**************************** RECUPERATION ADRESSE IP DEST ******************************//
+        		try{
+        			p = Pattern.compile("c=IN IP4 [^ t]*"); // recuperation du "connection information"
+        			m = p.matcher(chaine);
+        			while(m.find()){
+	        			aux = chaine.substring(m.start(),m.end());
+        			}
+        			
+        			p = Pattern.compile("[0-9]{1,3}([.][0-9]{1,3}){3}"); //extraction @IP_dest
+        			m = p.matcher(aux);
+        			while(m.find()){
+	        			setIp_dest(aux.substring(m.start(),m.end()));
+	        			
+        			}
+        			System.out.println("************ IP_dest = "+getIp_dest());
+        		}
+        		catch(PatternSyntaxException pse){
+        			System.out.println("ERROR [RECUPERATION ADRESSE IP DEST]");
+        		}	
+        	}
+        	catch(Exception e){
+        		e.printStackTrace();
+        	}
+        	
+        	//*********** AFFICHAGE DU FLUX **********//
+        	printFlux();
+        	
+        	//*********** ENVOI DU MESSAGE AU BB **********//     
+        	NI ni=new NI();  /
+            Controller cont=new Controller(ni);        
+            ni.setCont(cont); 
+            
+            String IP_BB="192.168.1.254"
+            cont.performConnect(getIp_source,getIp_dest,getPort_source,getPort_dest,getCodec,6400,0,InetAddress.getByName(IP_BB));  	
+	}
+	
+	
+	public void Invite(String method,Request request)
+	{
+        if(method.equals("INVITE"))
+        {
+        	SIPRequest siprequest = (SIPRequest) request;
+        	String sdpContent = new String(siprequest.getRawContent());
+
+        	try{
+        		
+        		SdpFactory sdpf = SdpFactory.getInstance();
+        		SessionDescription requestSDP = sdpf.createSessionDescription(sdpContent); // récupération du message SDP        		
+        		String chaine = requestSDP.toString(); // récupération de la chaine à parser
+        		//System.out.println(chaine);       		
+        		
+        		String aux = new String();// déclaration des variables auxiliaires
+        		Pattern p;
+        		Matcher m;
+        		
+        		//******************* RECUPERATION PORT SOURCE *************************//
+        		try
+        		{
+        			p = Pattern.compile("m=audio [^ ]*"); // recuperation du "media description"
+        			m = p.matcher(chaine);
+        			while(m.find())
+        			{
+	        			aux = chaine.substring(m.start(),m.end());
+	        			//System.out.println(aux);
+        			}
+        			
+        			
+        			p = Pattern.compile("[0-9]+"); // extraction du port source
+        			m = p.matcher(aux);
+        			while(m.find())
+        			{
+						setPort_source(aux.substring(m.start(),m.end()));
+        			}
+        			System.out.println("************ Port_source = "+getPort_source());
+        			
+        		}catch(PatternSyntaxException pse){
+        			System.out.println("ERROR [RECUPERATION PORT SOURCE]");
+        		}
+            			
+        		//******************** RECUPERATION ADRESSE IP SOURCE ***************************//
+        		try
+        		{
+        			p = Pattern.compile("c=IN IP4 [^ t]*"); // recuperation du "connection information"
+        			m = p.matcher(chaine);
+        			while(m.find())
+        			{
+	        			aux = chaine.substring(m.start(),m.end());
+	        			//System.out.println(aux);
+        			}
+        			
+        			
+        			p = Pattern.compile("[0-9]{1,3}([.][0-9]{1,3}){3}"); // extraction @IP_source
+        			m = p.matcher(aux);
+        			while(m.find())
+        			{
+	        			setIp_source(aux.substring(m.start(),m.end()));
+        			}
+        			System.out.println("************ IP_source = "+getIp_source());
+        			        			
+        		}catch(PatternSyntaxException pse){
+        			System.out.println("ERROR [RECUPERATION ADRESSE IP SOURCE]");
+        		}
+        		
+        	}
+        	catch(Exception e){
+        		e.printStackTrace();
+        	}
+        }        
+	}   
    
 }
