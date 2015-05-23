@@ -13,7 +13,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class Controller {
-    private NI ni;
+    private static NI ni;
     private static int id=1;
     
     /**
@@ -28,13 +28,13 @@ public class Controller {
     * classes.Cf pattern MVC
     */
     
-    public Controller(NI no) 
+    public Controller(NI ni) 
     {
        this.ni = ni;
     }
     
 
-    //***************Connect the localUser********************//
+    //***************SEND Reservationr********************//
     public void performConnect(String adresse_IP_src, String adresse_IP_dest,int port_src, 
 			int port_dest, String protocole, int codec,int debit, boolean classe,InetAddress addr) throws UnknownHostException  
     {

@@ -11,7 +11,8 @@ public class Bye extends Message{
         
         private static final long serialVersionUID = 4849L;
         private String adresse_IP_src;
-        public Bye(String adresse_IP_src) {
+        public Bye(String adresse_IP_src, String adresse_IP_dest,int port_src, 
+			int port_dest, String protocole, int codec,int debit, boolean classe) {
                 super(adresse_IP_src);
                 this.adresse_IP_src=adresse_IP_src;
         }

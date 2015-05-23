@@ -62,7 +62,7 @@ public class NI extends Thread
                        {
                            System.out.println("Data received : Reservation_Ack");
                            System.out.println("localhost : "+hostAddr+" adrrss :"+Addss+" @IP_s :"+reserv.getAdresse_IP_src());
-                           this.Cont.responseMessage_Ack(Reservation.getlogin());
+                           this.Cont.responseMessage_Ack(reserv.getAdresse_IP_src());
                        }                       
                     }
                     else

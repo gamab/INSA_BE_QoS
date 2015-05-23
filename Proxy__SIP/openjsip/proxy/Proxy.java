@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.NDC;
 import org.omg.CORBA.NameValuePair;
-import Messages.*;
 
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpFactory;
@@ -126,7 +125,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
     private String ip_dest;
     private String port_source;
     private String port_dest;
-    private String codec;
+    private String codec;    
+    NI ni=new NI();  
+    Controller cont=new Controller(ni);        
+    ni.setCont(cont); 
     
     /**
      * See RFC3261 for Timer C details
@@ -988,6 +990,11 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 	    
 	    Invite(method,request);
 	    
+	     if (method.equals("BYE"))
+         {
+           free_session();                  
+         }
+	    
         if (log.isDebugEnabled())
         {
             log.debug("-------------------");
@@ -1079,7 +1086,7 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 
                 if (method.equals("BYE"))
                 {
-                    int a = 5;
+                    int a = 5;                   
                 }
 
                 Thread thread = new Thread()
@@ -3003,14 +3010,13 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         	//*********** AFFICHAGE DU FLUX **********//
         	printFlux();
         	
-        	//*********** ENVOI DU MESSAGE AU BB **********//     
-        	NI ni=new NI();  /
-            Controller cont=new Controller(ni);        
-            ni.setCont(cont); 
-            
-            String IP_BB="192.168.1.254"
-            cont.performConnect(getIp_source,getIp_dest,getPort_source,getPort_dest,getCodec,6400,0,InetAddress.getByName(IP_BB));  	
-	}
+        	//*********** ENVOI DU MESSAGE AU BB **********//         	
+            String IP_BB="192.168.1.254";
+            int debit=6400;
+            boolean classe=0;// 0: Premium   1 : BE
+            cont.performConnect(getIp_source,getIp_dest,getPort_source,getPort_dest,getCodec,debit,classe,InetAddress.getByName(IP_BB));  	
+	    }
+     }
 	
 	
 	public void Invite(String method,Request request)
@@ -3020,8 +3026,8 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         	SIPRequest siprequest = (SIPRequest) request;
         	String sdpContent = new String(siprequest.getRawContent());
 
-        	try{
-        		
+        	try
+        	{        		
         		SdpFactory sdpf = SdpFactory.getInstance();
         		SessionDescription requestSDP = sdpf.createSessionDescription(sdpContent); // récupération du message SDP        		
         		String chaine = requestSDP.toString(); // récupération de la chaine à parser
@@ -3083,7 +3089,15 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         	catch(Exception e){
         		e.printStackTrace();
         	}
-        }        
-	}   
+      }        
+   }
+   
+   public void free_session()
+   {	   
+	   String IP_BB="192.168.1.254";
+       int debit=6400;
+       boolean classe=0;// 0: Premium   1 : BE
+       cont.sendBye(getIp_source,getIp_dest,getPort_source,getPort_dest,getCodec,debit,classe,InetAddress.getByName(IP_BB));
+   }   
    
 }
