@@ -1,23 +1,25 @@
 import java.net.Inet4Address;
 
 
-public class RouterDescription {
+public class RouterDescriptor {
 	private Inet4Address rtrId;
 	private Inet4Address rtrIp;
 	private Inet4Address prefix;
-	private float bpGold;
+	private int mask;
+	private float availRess;
 		
-	public RouterDescription() {
+	public RouterDescriptor() {
 		super();
 	}
 
-	public RouterDescription(Inet4Address rtrId, Inet4Address rtrIp,
-			Inet4Address prefix, float bpGold) {
+	public RouterDescriptor(Inet4Address rtrId, Inet4Address rtrIp,
+			Inet4Address prefix, int mask, float availRess) {
 		super();
 		this.rtrId = rtrId;
 		this.rtrIp = rtrIp;
 		this.prefix = prefix;
-		this.bpGold = bpGold;
+		this.mask = mask;
+		this.availRess = availRess;
 	}	
 	
 	public Inet4Address getRtrId() {
@@ -38,12 +40,16 @@ public class RouterDescription {
 	public void setPrefix(Inet4Address prefix) {
 		this.prefix = prefix;
 	}
-	public float getBpGold() {
-		return bpGold;
+	public float getAvailRess() {
+		return availRess;
 	}
-	public void setBpGold(float bpGold) {
-		this.bpGold = bpGold;
+	public void setAvailRess(float availRess) {
+		this.availRess = availRess;
 	}
-	
-	
+	public int getMask() {
+		return mask;
+	}
+	public void setMask(int mask) {
+		this.mask = mask;
+	}
 }
