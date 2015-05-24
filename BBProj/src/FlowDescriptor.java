@@ -1,7 +1,7 @@
 import java.net.Inet4Address;
 
 
-public class FlowDescription {
+public class FlowDescriptor {
 	private Inet4Address ipSrc;
 	private Inet4Address ipDst;
 	private int pSrc;
@@ -9,7 +9,7 @@ public class FlowDescription {
 	private float debit;
 	private int proto;
 		
-	public FlowDescription(Inet4Address ipSrc, Inet4Address ipDst, int pSrc,
+	public FlowDescriptor(Inet4Address ipSrc, Inet4Address ipDst, int pSrc,
 			int pDst, float debit, int proto) {
 		super();
 		this.ipSrc = ipSrc;
@@ -20,7 +20,7 @@ public class FlowDescription {
 		this.proto = proto;
 	}
 	
-	public FlowDescription() {
+	public FlowDescriptor() {
 		super();
 	}
 
