@@ -1,10 +1,11 @@
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
+import log.Log;
+
 import routerconf.RouterDescriptor;
 import routerconf.RouterRSRVTable;
 import routerconf.TelnetRouterClient;
-import Log.Log;
 import flow.FlowDescriptor;
 
 public class Main {
@@ -66,7 +67,7 @@ public class Main {
 					transmRate,
 					0x80);
 
-			RouterRSRVTable rrsrvt = new RouterRSRVTable(rtrD);
+			RouterRSRVTable rrsrvt = new RouterRSRVTable(rtrD.getMaxRess());
 
 			boolean flow1Accepted = false;
 			boolean flow2Accepted = false;
@@ -74,7 +75,7 @@ public class Main {
 				Log.d(TAG,"We can accept flow 1 " + fd1);
 				if (rrsrvt.acceptFlow(fd1)) {
 					Log.d(TAG,"Flow 1 " + fd1 + " accepted");
-					Log.d(TAG,"Router descriptor is now " + rtrD);
+					Log.d(TAG,"Router available ressources is now " + rrsrvt.getAvailRess());
 					flow1Accepted=true;
 				}
 				else {
@@ -89,7 +90,7 @@ public class Main {
 				Log.e(TAG,"We can accept flow 2 " + fd2);
 				if (rrsrvt.acceptFlow(fd1)) {
 					Log.e(TAG,"Flow 2 " + fd2 + " accepted");
-					Log.e(TAG,"Router descriptor is now " + rtrD);
+					Log.d(TAG,"Router available ressources is now " + rrsrvt.getAvailRess());
 					flow2Accepted=true;
 				}
 				else {
@@ -103,12 +104,12 @@ public class Main {
 			if (flow1Accepted && !flow2Accepted) {
 				if (rrsrvt.freeFlowRSRV(fd1)) {
 					Log.d(TAG,"We could free Flow 1 " + fd1);	
-					Log.d(TAG,"Router descriptor is now " + rtrD);
+					Log.d(TAG,"Router available ressources is now " + rrsrvt.getAvailRess());
 					if (rrsrvt.isFlowAcceptable(fd2)) {
 						Log.d(TAG,"We can accept flow 2 " + fd2);
 						if (rrsrvt.acceptFlow(fd1)) {
 							Log.d(TAG,"Flow 2 " + fd2 + " accepted");
-							Log.d(TAG,"Router descriptor is now " + rtrD);
+							Log.d(TAG,"Router available ressources is now " + rrsrvt.getAvailRess());
 							flow2Accepted=true;
 						}
 						else {
