@@ -1,4 +1,4 @@
-package Log;
+package log;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -16,10 +16,11 @@ public class Log {
 	public static final String ANSI_WHITE = "\u001B[37m";
 
 	public static String time() {
+		long millis = System.currentTimeMillis() % 1000;
 		Calendar cal = Calendar.getInstance();
 		cal.getTime();
 		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-		return sdf.format(cal.getTime());
+		return sdf.format(cal.getTime()) + ":" + millis;
 	}
 
 	public static void d(String TAG, String log) {
