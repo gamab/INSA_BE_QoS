@@ -1,12 +1,14 @@
 package ressources;
 
+import java.util.HashMap;
+
 /*
  * This class contains all constant data we will use
  * such as the throughput of each codec
  */
 public class Ressources {
-	
-	/*
+
+	/**
 	 * Bandwith of codecs on Ethernet in kbps
 	 * http://www.cisco.com/c/en/us/support/docs/voice/voice-quality/7934-bwidth-consume.html
 	 * Regexp pour parser un CSV avec les deux colonnes : 
@@ -19,8 +21,29 @@ public class Ressources {
 	public static final float G_726_a = 55_2f;
 	public static final float G_726_b = 47_2f;
 	public static final float G_728 = 31_5f;
-	public static final float G722 = 87_2f;
+	public static final float G_722 = 87_2f;
 	public static final float ilbc_mode_2 = 38_4f;
 	public static final float ilbc_mode_3 = 28_8f;
 
+	/**
+	 * Mapping a codecs name to a transmission rate
+	 */
+	public static HashMap<String,Float> transmRate;
+
+	/**
+	 * Constructor of the ressources
+	 */
+	public Ressources() {
+		transmRate = new HashMap<String,Float>();
+		transmRate.put("G_711", G_711);
+		transmRate.put("G_729", G_729);
+		transmRate.put("G_723_1a", G_723_1a);
+		transmRate.put("G_723_1b", G_723_1b);
+		transmRate.put("G_726_a", G_726_a);
+		transmRate.put("G_726_b", G_726_b);
+		transmRate.put("G_728", G_728);
+		transmRate.put("G_722", G_722);
+		transmRate.put("ilbc_mode_2", ilbc_mode_2);
+		transmRate.put("ilbc_mode_3", ilbc_mode_3);
+	}
 }

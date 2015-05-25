@@ -2,7 +2,7 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
 import log.Log;
-
+import ressources.Ressources;
 import routerconf.RouterDescriptor;
 import routerconf.RouterRSRVTable;
 import routerconf.TelnetRouterClient;
@@ -12,7 +12,8 @@ public class Main {
 	public static String TAG = "Main";
 
 	public static void main(String args[]){
-		testFlowRSRV();
+		//testFlowRSRV();
+		testRessources();
 	}
 
 	public static void testTelnet() {
@@ -129,6 +130,61 @@ public class Main {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public static void testRessources() {
+		Ressources R = new Ressources();
+		
+		//regexp pour créer le test : 
+		//cat ../rec/codec_rate.csv | 
+		// sed 's/[.]/_/g' | 
+		// sed 's/\([^,]*\)[,]\(.*\)/
+		//				if (R.transmRate.get(\"\1\")==R.\1)\n
+		//					Log.d(TAG,\"Retrieving \1 rate : " + R.transmRate.get(\"\1\") + " correct.");\n
+		//				else\n
+		//					Log.e(TAG,\"Retrieving \1 rate : incorrect.");
+		
+		if (R.transmRate.get("G_711")==R.G_711)
+			Log.d(TAG,"Retrieving G_711 rate : " + R.transmRate.get("G_711") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_711 rate : incorrect."); 
+		if (R.transmRate.get("G_729")==R.G_729)
+			Log.d(TAG,"Retrieving G_729 rate : " + R.transmRate.get("G_729") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_729 rate : incorrect."); 
+		if (R.transmRate.get("G_723_1a")==R.G_723_1a)
+			Log.d(TAG,"Retrieving G_723_1a rate : " + R.transmRate.get("G_723_1a") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_723_1a rate : incorrect."); 
+		if (R.transmRate.get("G_723_1b")==R.G_723_1b)
+			Log.d(TAG,"Retrieving G_723_1b rate : " + R.transmRate.get("G_723_1b") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_723_1b rate : incorrect."); 
+		if (R.transmRate.get("G_726_a")==R.G_726_a)
+			Log.d(TAG,"Retrieving G_726_a rate : " + R.transmRate.get("G_726_a") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_726_a rate : incorrect."); 
+		if (R.transmRate.get("G_726_b")==R.G_726_b)
+			Log.d(TAG,"Retrieving G_726_b rate : " + R.transmRate.get("G_726_b") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_726_b rate : incorrect."); 
+		if (R.transmRate.get("G_728")==R.G_728)
+			Log.d(TAG,"Retrieving G_728 rate : " + R.transmRate.get("G_728") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_728 rate : incorrect."); 
+		if (R.transmRate.get("G_722")==R.G_722)
+			Log.d(TAG,"Retrieving G_722 rate : " + R.transmRate.get("G_722") + " correct.");
+		else
+			Log.e(TAG,"Retrieving G_722 rate : incorrect."); 
+		if (R.transmRate.get("ilbc_mode_2")==R.ilbc_mode_2)
+			Log.d(TAG,"Retrieving ilbc_mode_2 rate : " + R.transmRate.get("ilbc_mode_2") + " correct.");
+		else
+			Log.e(TAG,"Retrieving ilbc_mode_2 rate : incorrect."); 
+		if (R.transmRate.get("ilbc_mode_3")==R.ilbc_mode_3)
+			Log.d(TAG,"Retrieving ilbc_mode_3 rate : " + R.transmRate.get("ilbc_mode_3") + " correct.");
+		else
+			Log.e(TAG,"Retrieving ilbc_mode_3 rate : incorrect.");
+
 	}
 
 

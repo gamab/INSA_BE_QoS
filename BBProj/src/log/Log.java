@@ -24,7 +24,7 @@ public class Log {
 	}
 
 	public static void d(String TAG, String log) {
-		System.out.println(ANSI_GREEN + "(DEBUG)%" + time() + "% - " 
+		System.out.println(ANSI_BLACK + "(DEBUG)%" + time() + "% - " 
 				+ TAG + " : " + log + ANSI_RESET);
 	}
 
