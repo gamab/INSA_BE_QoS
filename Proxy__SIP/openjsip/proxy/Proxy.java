@@ -128,9 +128,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
     private String ip_dest;
     private int port_source;
     private int port_dest;
-    private int codec; 
+    private String rate; 
     private NI ni;  
     private Controller cont;   
+    private Ressources r;
     
     
     /**
@@ -335,9 +336,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         if (System.getSecurityManager() == null)
             System.setSecurityManager(new SecurityManager());
 
-	ni=new NI();  
+	    ni=new NI();  
         cont=new Controller(ni);        
         ni.setCont(cont); 
+        r=new Ressources();
 
         SipFactory sipFactory = SipFactory.getInstance();
 
@@ -2896,8 +2898,8 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         this.port_dest = port_dest;
     }
     
-    public void setCodec(int codec) {
-        this.codec = codec;
+    public void setTransmRate(String rate) {
+        this.rate = rate;
     }    
     
     public String getIp_source() {
@@ -2916,13 +2918,13 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         return this.port_dest;
     }
     
-    public int getCodec() {
-        return this.codec;
+    public float getTransmRate() {
+        return this.r.transmRate.get(rate);
     }
     
     public void printFlux() {
 		System.out.println("**********************************************************************");
-		System.out.println("Flux : @IP_src="+getIp_source()+" @IP_dest="+getIp_dest()+" Port_src="+getPort_source()+" Port_dest="+getPort_dest()+" Codec="+getCodec());
+		System.out.println("Flux : @IP_src="+getIp_source()+" @IP_dest="+getIp_dest()+" Port_src="+getPort_source()+" Port_dest="+getPort_dest()+" Debit="+getTransmRate());
                 System.out.println("**********************************************************************");
 	}
     
@@ -2935,7 +2937,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         	SIPResponse sr = (SIPResponse)response;
         	String sdpContent = new String(sr.getRawContent());
         	String chaine = new String();
+        	String chaine1 = new String();
         	String aux = new String();
+        	String aux1 = new String();
+        	String aux2 = new String();
     		Pattern p;
     		Matcher m;
         	
@@ -2967,7 +2972,7 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         			System.out.println("ERROR [RECUPERATION PORT DEST]");
         		}
         		
-        		//****************************** RECUPERATION CODEC *****************************//
+        		//****************************** RECUPERATION DEBIT *****************************//
         		try
         		{
         			p = Pattern.compile("RTP/AVP [0-9]*");  // recuperation du "media description"
@@ -2982,12 +2987,25 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         			m = p.matcher(aux);
         			while(m.find())
         			{
-	        			setCodec(Integer.parseInt(aux.substring(m.start(),m.end())));
+						aux1=aux.substring(m.start(),m.end());
+						//System.out.println(aux1);
         			}
-        			System.out.println("************ Codec = "+getCodec());       			
+        			
+        			p = Pattern.compile("a=rtpmap:"+aux1+" [^ /]*"); // recuperation du "more session attribute lines"
+        			m = p.matcher(chaine);
+        			while(m.find()){
+	        			aux2 = chaine.substring(m.start(),m.end());
+        			}
+        			
+        			p = Pattern.compile("(G7|il)[^]*"); //extraction Debit
+        			m = p.matcher(aux2);
+        			while(m.find()){
+	        			setTransmRate(aux2.substring(m.start(),m.end()));	        			
+        			}
+        			System.out.println("************ Debit = "+getTransmRate());       			
         		}
         		catch(PatternSyntaxException pse){
-        			System.out.println("ERROR [RECUPERATION CODEC]");
+        			System.out.println("ERROR [RECUPERATION DEBIT]");
         		}
         		
             			
@@ -3020,10 +3038,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         	
         	//*********** ENVOI DU MESSAGE AU BB **********//         	
             String IP_BB="192.168.1.254";
-	    String protocole="RTP";
+	        String protocole="RTP";
             try
             {
-                   cont.performConnect(getIp_source(),getIp_dest(),getPort_source(),getPort_dest(),protocole,getCodec(),(InetAddress.getByName(IP_BB)));  	
+                   cont.performConnect(getIp_source(),getIp_dest(),getPort_source(),getPort_dest(),protocole,getTransmRate(),(InetAddress.getByName(IP_BB)));  	
             }
   	    catch(UnknownHostException e){
                         System.out.println("ERROR [OK<== @IP]");
@@ -3111,8 +3129,8 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
        String IP_BB="192.168.1.254";
        String protocole="RTP";
        try
-       {
-            cont.sendBye(getIp_source(),getIp_dest(),getPort_source(),getPort_dest(),protocole,getCodec(),InetAddress.getByName(IP_BB)); 	
+       {   
+            cont.sendBye(getIp_source(),getIp_dest(),getPort_source(),getPort_dest(),protocole,getTransmRate(),InetAddress.getByName(IP_BB)); 	
        }
        catch(UnknownHostException e){
                  System.out.println("ERROR [free_session<== @IP]");

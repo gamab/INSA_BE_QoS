@@ -61,7 +61,7 @@ public class NI extends Thread
                        {
                            System.out.println("Data received : Reservation_Ack");
                            System.out.println("localhost : "+hostAddr+" adrrss :"+Addss+" @IP_s :"+reserv.getAdresse_IP_src());
-                           this.Cont.responseMessage_Ack(reserv.getAdresse_IP_src());
+                           this.Cont.responseMessage_Ack();
                        }                       
                     }
                     else
@@ -69,7 +69,7 @@ public class NI extends Thread
                         if(Addss.equals(hostAddr)==false) //<=== si mis à true, on accepte les demandes en provenances de notre machine
                         {
                             System.out.println("Data received : Reservation_NoAck");
-                            this.Cont.responseMessage_NoAck(reserv.getAdresse_IP_src());
+                            this.Cont.responseMessage_NoAck();
                         }
                     }
                 }
@@ -79,7 +79,7 @@ public class NI extends Thread
                     if(Addss.equals(hostAddr)==true)
                     {
                         System.out.println("Data received : Bye");
-                        this.Cont.receiveBye(bye.getAdresse_IP_src());  
+                        this.Cont.receiveBye();  
                     }
                 }                
                 

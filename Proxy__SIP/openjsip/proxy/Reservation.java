@@ -10,26 +10,40 @@ package openjsip.proxy;
 
 public class Reservation extends Message{
         private static final long serialVersionUID = 33L;
+        private FlowDescriptor flow1;
+        private FlowDescriptor flow2;
         private boolean isAck;
         
-        public Reservation(String adresse_IP_src, String adresse_IP_dest,int port_src, 
-			int port_dest, String protocole, int codec,boolean isAck) {
-                super(adresse_IP_src,adresse_IP_dest,port_src,port_dest,protocole,codec);
-                this.isAck = isAck;
-        }
-        
-        @Override
-        public String toString() {
-                return "Reservation from " + adresse_IP_src  +"to "+adresse_IP_dest+", isAck=" + isAck ;
-        }
+        public Reservation(FlowDescriptor flow1, FlowDescriptor flow2,
+				boolean isAck) {
+			super();
+			this.flow1 = flow1;
+			this.flow2 = flow2;
+			this.isAck = isAck;
+		}
 
-        public boolean isAck() {
-                return isAck;
-        }
-        
-        public void setIsAck(boolean isAck) {
-                this.isAck = isAck;
-        }
-        
+		public FlowDescriptor getFlow1() {
+			return flow1;
+		}
+
+		public void setFlow1(FlowDescriptor flow1) {
+			this.flow1 = flow1;
+		}
+
+		public FlowDescriptor getFlow2() {
+			return flow2;
+		}
+
+		public void setFlow2(FlowDescriptor flow2) {
+			this.flow2 = flow2;
+		}
+
+		public void setAck(boolean isAck) {
+			this.isAck = isAck;
+		}       
+		
+		public boolean getAck() {
+			return this.isAck;
+		}
         
 }

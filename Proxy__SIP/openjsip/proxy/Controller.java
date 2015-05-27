@@ -9,6 +9,7 @@ package openjsip.proxy;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
 public class Controller {
@@ -35,20 +36,22 @@ public class Controller {
 
     //***************SEND Reservationr********************//
     public void performConnect(String adresse_IP_src, String adresse_IP_dest,int port_src, 
-			int port_dest, String protocole, int codec,InetAddress addr) throws UnknownHostException  
+			int port_dest, String protocole, float transmRate,InetAddress addr) throws UnknownHostException  
     {
         System.out.println("performConnect");
         if(NI.isClose())
         { 
             this.setNI(new  NI());            
         }
-        this.sendReservation(adresse_IP_src,adresse_IP_dest,port_src,port_dest,protocole,codec,addr);
+        this.sendReservation(adresse_IP_src,adresse_IP_dest,port_src,port_dest,protocole,transmRate,addr);
     }
 
     public void sendReservation(String adresse_IP_src, String adresse_IP_dest,int port_src, 
-			int port_dest, String protocole, int codec,InetAddress addr) throws UnknownHostException 
+			int port_dest, String protocole, float transmRate,InetAddress addr) throws UnknownHostException 
     {
-        Reservation reserv = new Reservation(adresse_IP_src,adresse_IP_dest,port_src,port_dest,protocole,codec,false); 
+	    FlowDescriptor un= new FlowDescriptor((Inet4Address)InetAddress.getByName(adresse_IP_src), (Inet4Address)InetAddress.getByName(adresse_IP_dest),port_src,port_dest,transmRate, protocole);
+		FlowDescriptor deux= new FlowDescriptor((Inet4Address)InetAddress.getByName(adresse_IP_dest),(Inet4Address)InetAddress.getByName(adresse_IP_src),port_dest,port_src,transmRate,protocole);
+        Reservation reserv = new Reservation(un,deux,false); 
         try 
         {
             System.out.println("sendReservation");
@@ -63,9 +66,11 @@ public class Controller {
 
     //*************** SEND Bye********************//    
     public void sendBye(String adresse_IP_src, String adresse_IP_dest,int port_src, 
-			int port_dest, String protocole, int codec,InetAddress addr) throws UnknownHostException 
+			int port_dest, String protocole, float transmRate,InetAddress addr) throws UnknownHostException 
     {
-        Bye bye = new Bye(adresse_IP_src,adresse_IP_dest,port_src,port_dest,protocole,codec);
+		FlowDescriptor un= new FlowDescriptor((Inet4Address)InetAddress.getByName(adresse_IP_src), (Inet4Address)InetAddress.getByName(adresse_IP_dest),port_src,port_dest,transmRate, protocole);
+		FlowDescriptor deux= new FlowDescriptor((Inet4Address)InetAddress.getByName(adresse_IP_dest),(Inet4Address)InetAddress.getByName(adresse_IP_src),port_dest,port_src,transmRate,protocole);
+        Bye bye = new Bye(un,deux);
         try 
         {
             System.out.println("sendBye");
@@ -79,21 +84,21 @@ public class Controller {
     
     
     //***************Receive Ack********************//
-         public void responseMessage_Ack(String login)
-    {
-        System.out.println("responseMessage_Ack" + login);
-        InetAddress addr=this.ni.getServer().getPacket().getAddress();         
+         public void responseMessage_Ack()
+    {        
+        InetAddress addr=this.ni.getServer().getPacket().getAddress(); 
+        System.out.println("receive : Message[OK] from " + addr.getHostAddress());        
     }
          
     //***************Receive No_ACK********************//      
-      public void responseMessage_NoAck(String login)
+      public void responseMessage_NoAck()
     {
-        System.out.println("responseMessage_NoAck "+login);
-        InetAddress addr=this.ni.getServer().getPacket().getAddress();   
+		InetAddress addr=this.ni.getServer().getPacket().getAddress();  
+        System.out.println("receive : Message[NOK] from "+addr.getHostAddress());         
     }  
       
     //***************Receive Bye********************//     
-      public void receiveBye(String login)
+      public void receiveBye()
       {
           System.out.println("receiveBye");
       }    

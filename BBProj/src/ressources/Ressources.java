@@ -35,15 +35,17 @@ public class Ressources {
 	 */
 	public Ressources() {
 		transmRate = new HashMap<String,Float>();
-		transmRate.put("G_711", G_711);
-		transmRate.put("G_729", G_729);
-		transmRate.put("G_723_1a", G_723_1a);
-		transmRate.put("G_723_1b", G_723_1b);
-		transmRate.put("G_726_a", G_726_a);
-		transmRate.put("G_726_b", G_726_b);
-		transmRate.put("G_728", G_728);
-		transmRate.put("G_722", G_722);
+		transmRate.put("G711", G_711);
+		transmRate.put("G729", G_729);
+		transmRate.put("G723_1a", G_723_1a);
+		transmRate.put("G723_1b", G_723_1b);
+		transmRate.put("G726_a", G_726_a);
+		transmRate.put("G726_b", G_726_b);
+		transmRate.put("G728", G_728);
+		transmRate.put("G722", G_722);
 		transmRate.put("ilbc_mode_2", ilbc_mode_2);
 		transmRate.put("ilbc_mode_3", ilbc_mode_3);
 	}
+	//Ressources r=new Ressources();
+	// r.transmRate.get("G_711");
 }

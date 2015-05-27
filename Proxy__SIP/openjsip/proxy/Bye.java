@@ -10,13 +10,14 @@ package openjsip.proxy;
 public class Bye extends Message{
         
         private static final long serialVersionUID = 4849L;
-        public Bye(String adresse_IP_src, String adresse_IP_dest,int port_src, 
-			int port_dest, String protocole, int codec) {
-                super(adresse_IP_src,adresse_IP_dest,port_src,port_dest,protocole,codec);                
-        }
-        @Override
-        public String toString() {
-                return "Bye from " + adresse_IP_src  ;
-        }      
+        
+        private FlowDescriptor flow1;
+        private FlowDescriptor flow2;
+        
+        public Bye(FlowDescriptor flow1, FlowDescriptor flow2) {
+			super();
+			this.flow1 = flow1;
+			this.flow2 = flow2;
+		}   
         
 }
