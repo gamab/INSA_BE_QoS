@@ -7,13 +7,12 @@
 */
 package openjsip.proxy;
 import java.io.File;
-import Messages.*;
 import java.io.IOException;
 import java.net.*;
 
 public class NI extends Thread
 {
-    private final int UDP_SERVER_PORT = 2014;
+    private final int UDP_SERVER_PORT = 2015;
     private UDPServer server;
     private UDPClient client;
     private static Controller Cont;
