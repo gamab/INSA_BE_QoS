@@ -71,6 +71,14 @@ public class ProxyServer {
 				boolean couldAccept = this.ctrlr.processReservation((Reservation) msg);
 
 				//here send the answer to the proxy
+				((Reservation) msg).setAck(couldAccept);
+				try {
+					os.write(msg.toArray(msg));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					Log.e(TAG, "Could not send answer to reservation");
+				}
 			}
 			else if (msg instanceof Bye) {
 				this.ctrlr.processBye((Bye) msg);		        	

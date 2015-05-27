@@ -57,8 +57,8 @@ public class Controller {
 
 	public boolean processReservation(Reservation msg) {
 		//Extract flow from reservation
-		FlowDescriptor flow1 = null;
-		FlowDescriptor flow2 = null;
+		FlowDescriptor flow1 = msg.getFlow1();
+		FlowDescriptor flow2 = msg.getFlow2();
 
 		//Identify Router in charge of the flow
 		Inet4Address ipSrc1 = flow1.getIpSrc();
