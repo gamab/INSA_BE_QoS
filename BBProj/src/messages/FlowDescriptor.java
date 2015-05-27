@@ -1,17 +1,21 @@
-package ressources;
+package messages;
+import java.io.Serializable;
 import java.net.Inet4Address;
 
 
-public class FlowDescriptor {
+public class FlowDescriptor implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+	
 	private Inet4Address ipSrc;
 	private Inet4Address ipDst;
 	private int pSrc;
 	private int pDst;
 	private float transmRate;
-	private int proto;
+	private String proto;
 		
 	public FlowDescriptor(Inet4Address ipSrc, Inet4Address ipDst, int pSrc,
-			int pDst, float transmRate, int proto) {
+			int pDst, float transmRate, String proto) {
 		super();
 		this.ipSrc = ipSrc;
 		this.ipDst = ipDst;
@@ -51,10 +55,10 @@ public class FlowDescriptor {
 	public void setTransmRate(float transmRate) {
 		this.transmRate = transmRate;
 	}
-	public int getProto() {
+	public String getProto() {
 		return proto;
 	}
-	public void setProto(int proto) {
+	public void setProto(String proto) {
 		this.proto = proto;
 	}
 	

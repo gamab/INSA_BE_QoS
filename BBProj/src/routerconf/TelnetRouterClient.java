@@ -16,7 +16,7 @@ public class TelnetRouterClient {
 	private TelnetClient telnet;
 	private InputStream is;
 	private PrintStream ps;
-	private static final String prompt = "$";
+	private static final String prompt = "#";
 
 	public TelnetRouterClient( Inet4Address ipRtr, int port, String user, String password ) {
 		telnet = new TelnetClient();

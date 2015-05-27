@@ -2,7 +2,7 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
 import log.Log;
-import ressources.FlowDescriptor;
+import messages.FlowDescriptor;
 import ressources.Ressources;
 import routerconf.RouterDescriptor;
 import routerconf.RouterRSRVTable;
@@ -13,7 +13,8 @@ public class Main {
 
 	public static void main(String args[]){
 		//testFlowRSRV();
-		testRessources();
+		//testRessources();
+		TestRouteurDescriptorSubnetDetermination();
 	}
 
 	public static void testTelnet() {
@@ -38,7 +39,7 @@ public class Main {
 			byte [] ipRtr = new byte[] {(byte)127,(byte)0,(byte)0,(byte)1};
 			byte [] idRtr = new byte[] {(byte)101,(byte)101,(byte)101,(byte)101};
 			byte [] prefix = new byte[] {(byte)192,(byte)168,(byte)1,(byte)0};
-			int mask = 24;
+			byte[] mask = {(byte) 255,(byte) 255,(byte) 255,0};
 			float availRess = 100.0f;
 
 			RouterDescriptor rtrD = new RouterDescriptor( 
@@ -59,14 +60,14 @@ public class Main {
 					1340,
 					1342,
 					transmRate,
-					0x80);
+					"UDP");
 			FlowDescriptor fd2 = new FlowDescriptor(
 					(Inet4Address)Inet4Address.getByAddress(ipSrc),
 					(Inet4Address)Inet4Address.getByAddress(ipDst2), 
 					1345,
 					1347,
 					transmRate,
-					0x80);
+					"UDP");
 
 			RouterRSRVTable rrsrvt = new RouterRSRVTable(rtrD.getMaxRess());
 
@@ -134,7 +135,7 @@ public class Main {
 
 	public static void testRessources() {
 		Ressources R = new Ressources();
-		
+
 		//regexp pour créer le test : 
 		//cat ../rec/codec_rate.csv | 
 		// sed 's/[.]/_/g' | 
@@ -143,7 +144,7 @@ public class Main {
 		//					Log.d(TAG,\"Retrieving \1 rate : " + R.transmRate.get(\"\1\") + " correct.");\n
 		//				else\n
 		//					Log.e(TAG,\"Retrieving \1 rate : incorrect.");
-		
+
 		if (R.transmRate.get("G_711")==R.G_711)
 			Log.d(TAG,"Retrieving G_711 rate : " + R.transmRate.get("G_711") + " correct.");
 		else
@@ -187,5 +188,65 @@ public class Main {
 
 	}
 
+	public static void TestRouteurDescriptorSubnetDetermination() {
+		try{
+			byte [] ipRtr = new byte[] {(byte)192,(byte)120,(byte)2,(byte)3};
+			byte [] idRtr = new byte[] {(byte)101,(byte)101,(byte)101,(byte)101};
+			byte [] prefix = new byte[] {(byte)192,(byte)168,(byte)1,(byte)0};
+			
+			byte[] mask = {(byte) 255,(byte) 255,(byte) 255,0};
+			float availRess = 100.0f;
+
+			RouterDescriptor rtrD = new RouterDescriptor( 
+					(Inet4Address)Inet4Address.getByAddress(idRtr),
+					(Inet4Address)Inet4Address.getByAddress(ipRtr), 
+					(Inet4Address)Inet4Address.getByAddress(prefix),mask,
+					availRess);
+			Log.d(TAG,"Created router descriptor " + rtrD);
+
+			byte [] add1B = new byte[] {(byte)192,(byte)168,(byte)1,(byte)1};
+			byte [] add2B = new byte[] {(byte)192,(byte)168,(byte)1,(byte)2};
+			byte [] add3B = new byte[] {(byte)191,(byte)168,(byte)1,(byte)2};
+			byte [] add4B = new byte[] {(byte)192,(byte)168,(byte)1,(byte)255};
+			
+			Inet4Address add1 = (Inet4Address)Inet4Address.getByAddress(add1B);
+			Inet4Address add2 = (Inet4Address)Inet4Address.getByAddress(add2B);
+			Inet4Address add3 = (Inet4Address)Inet4Address.getByAddress(add3B);
+			Inet4Address add4 = (Inet4Address)Inet4Address.getByAddress(add4B);
+			
+			
+			if (rtrD.isInRouterPrefix(add1)) {
+				Log.d(TAG, "IP:" + add1 + " is in subnet " + rtrD.getPrefix());
+			}
+			else {
+				Log.e(TAG, "IP:" + add1 + " is not in subnet " + rtrD.getPrefix());				
+			}
+
+			if (rtrD.isInRouterPrefix(add2)) {
+				Log.d(TAG, "IP:" + add2 + " is in subnet " + rtrD.getPrefix());
+			}
+			else {
+				Log.e(TAG, "IP:" + add2 + " is not in subnet " + rtrD.getPrefix());				
+			}
+
+			if (! rtrD.isInRouterPrefix(add3)) {
+				Log.d(TAG, "IP:" + add3 + " is not in subnet " + rtrD.getPrefix());
+			}
+			else {
+				Log.e(TAG, "IP:" + add3 + " is in subnet " + rtrD.getPrefix());				
+			}
+			
+			if (rtrD.isInRouterPrefix(add4)) {
+				Log.d(TAG, "IP:" + add4 + " is in subnet " + rtrD.getPrefix());
+			}
+			else {
+				Log.e(TAG, "IP:" + add4 + " is not in subnet " + rtrD.getPrefix());				
+			}
+			
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 }

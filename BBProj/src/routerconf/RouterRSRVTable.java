@@ -3,9 +3,9 @@ package routerconf;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import ressources.FlowDescriptor;
 
 import log.Log;
+import messages.FlowDescriptor;
 
 
 
