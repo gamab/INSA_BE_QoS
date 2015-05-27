@@ -52,7 +52,6 @@ public class ProxyClient {
 		byte[] data = new byte[MAX_SIZE];
 		byte [] ipSrc = new byte[] {(byte)192,(byte)168,(byte)0,(byte)2};
 		byte [] ipDst1 = new byte[] {(byte)192,(byte)168,(byte)1,(byte)3};
-		byte [] ipDst2 = new byte[] {(byte)192,(byte)168,(byte)1,(byte)3};
 		float transmRate = 64.0f;
 		//Inet4Address ipSrc, Inet4Address ipDst, int pSrc,int pDst, float transmRate, int proto
 		FlowDescriptor fd1 = null;

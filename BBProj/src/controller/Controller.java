@@ -1,10 +1,13 @@
 package controller;
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ListIterator;
+
+import com.jcraft.jsch.JSchException;
 
 import log.Log;
 import messages.Bye;
@@ -12,13 +15,14 @@ import messages.FlowDescriptor;
 import messages.Reservation;
 import routerconf.RouterDescriptor;
 import routerconf.RouterRSRVTable;
+import routerconf.SSHRouterClient;
 import routerconf.TelnetRouterClient;
 
 public class Controller {
 
 	public static final String TAG = "Controller";
 
-	public static final String LOGGIN = "login";
+	public static final String LOGIN = "login";
 	public static final String PASS = "mdp";
 	public static final int TELNETPORT = 23;
 
@@ -139,16 +143,35 @@ public class Controller {
 		}
 
 		//Connect to routeur and exec script of reservation
-		TelnetRouterClient trc;
-		Log.d(TAG, "Connection telnet to : " + rtrD1.getRtrIp());
-		trc = new TelnetRouterClient(rtrD1.getRtrIp(), this.TELNETPORT, this.LOGGIN, this.PASS);
-		trc.sendCommand(nameScriptResa);
-		trc.disconnect();
-		Log.d(TAG, "Connection telnet to : " + rtrD2.getRtrIp());
-		trc = new TelnetRouterClient(rtrD2.getRtrIp(), this.TELNETPORT, this.LOGGIN, this.PASS);
-		trc.sendCommand(nameScriptResa);
-		trc.disconnect();
-
+//		TelnetRouterClient trc;
+//		Log.d(TAG, "Connection telnet to : " + rtrD1.getRtrIp());
+//		trc = new TelnetRouterClient(rtrD1.getRtrIp(), this.TELNETPORT, this.LOGGIN, this.PASS);
+//		trc.sendCommand(nameScriptResa);
+//		trc.disconnect();
+//		Log.d(TAG, "Connection telnet to : " + rtrD2.getRtrIp());
+//		trc = new TelnetRouterClient(rtrD2.getRtrIp(), this.TELNETPORT, this.LOGGIN, this.PASS);
+//		trc.sendCommand(nameScriptResa);
+//		trc.disconnect();
+		String ipRtr;
+		ipRtr = rtrD1.getRtrIp().getHostAddress();
+		Log.d(TAG, "Connection telnet to : " + ipRtr);
+		try {
+			SSHRouterClient.sendCommand(ipRtr, 22, this.LOGIN, this.PASS, nameScriptResa);
+		} catch (JSchException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.e(TAG, "Could not execute commande");
+		}
+		ipRtr = rtrD2.getRtrIp().getHostAddress();
+		Log.d(TAG, "Connection telnet to : " + ipRtr);
+		try {
+			SSHRouterClient.sendCommand(ipRtr, 22, this.LOGIN, this.PASS, nameScriptResa);
+		} catch (JSchException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.e(TAG, "Could not execute commande");
+		}
+		
 		return true;
 	}
 
