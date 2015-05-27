@@ -1,5 +1,10 @@
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+
+import proxySide.ProxyServer;
+
+import controller.Controller;
 
 import log.Log;
 import messages.FlowDescriptor;
@@ -14,7 +19,17 @@ public class Main {
 	public static void main(String args[]){
 		//testFlowRSRV();
 		//testRessources();
-		TestRouteurDescriptorSubnetDetermination();
+		//TestRouteurDescriptorSubnetDetermination();
+		
+		Controller ctrlr = new Controller();
+		ProxyServer ps = null;
+		try {
+			ps = new ProxyServer(ctrlr);
+			ps.run();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public static void testTelnet() {
