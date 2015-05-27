@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
+import com.jcraft.jsch.JSchException;
+
 import proxySide.ProxyServer;
 
 import controller.Controller;
@@ -11,6 +13,7 @@ import messages.FlowDescriptor;
 import ressources.Ressources;
 import routerconf.RouterDescriptor;
 import routerconf.RouterRSRVTable;
+import routerconf.SSHRouterClient;
 import routerconf.TelnetRouterClient;
 
 public class Main {
@@ -20,7 +23,7 @@ public class Main {
 		//testFlowRSRV();
 		//testRessources();
 		//TestRouteurDescriptorSubnetDetermination();
-		
+
 		Controller ctrlr = new Controller();
 		ProxyServer ps = null;
 		try {
@@ -30,9 +33,11 @@ public class Main {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+//		testSSH();
 	}
 
 	public static void testTelnet() {
+		
 		Inet4Address ipRtr;
 		try {
 			ipRtr = (Inet4Address) Inet4Address.getByName("localhost");
@@ -44,6 +49,23 @@ public class Main {
 			trc.disconnect();
 
 		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static void testSSH() {
+		try {
+			Log.d(TAG, "Exec de la première fonction");
+			SSHRouterClient.sendCommand("localhost", 22, "login", "mdp", "ls");
+			Log.d(TAG,"Exec de la seconde fonction");
+			SSHRouterClient.sendCommand("192.120.2.4", 22, "login", "mdp", "ls");
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -208,7 +230,7 @@ public class Main {
 			byte [] ipRtr = new byte[] {(byte)192,(byte)120,(byte)2,(byte)3};
 			byte [] idRtr = new byte[] {(byte)101,(byte)101,(byte)101,(byte)101};
 			byte [] prefix = new byte[] {(byte)192,(byte)168,(byte)1,(byte)0};
-			
+
 			byte[] mask = {(byte) 255,(byte) 255,(byte) 255,0};
 			float availRess = 100.0f;
 
@@ -223,13 +245,13 @@ public class Main {
 			byte [] add2B = new byte[] {(byte)192,(byte)168,(byte)1,(byte)2};
 			byte [] add3B = new byte[] {(byte)191,(byte)168,(byte)1,(byte)2};
 			byte [] add4B = new byte[] {(byte)192,(byte)168,(byte)1,(byte)255};
-			
+
 			Inet4Address add1 = (Inet4Address)Inet4Address.getByAddress(add1B);
 			Inet4Address add2 = (Inet4Address)Inet4Address.getByAddress(add2B);
 			Inet4Address add3 = (Inet4Address)Inet4Address.getByAddress(add3B);
 			Inet4Address add4 = (Inet4Address)Inet4Address.getByAddress(add4B);
-			
-			
+
+
 			if (rtrD.isInRouterPrefix(add1)) {
 				Log.d(TAG, "IP:" + add1 + " is in subnet " + rtrD.getPrefix());
 			}
@@ -250,14 +272,14 @@ public class Main {
 			else {
 				Log.e(TAG, "IP:" + add3 + " is in subnet " + rtrD.getPrefix());				
 			}
-			
+
 			if (rtrD.isInRouterPrefix(add4)) {
 				Log.d(TAG, "IP:" + add4 + " is in subnet " + rtrD.getPrefix());
 			}
 			else {
 				Log.e(TAG, "IP:" + add4 + " is not in subnet " + rtrD.getPrefix());				
 			}
-			
+
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
