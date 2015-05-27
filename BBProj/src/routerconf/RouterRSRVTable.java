@@ -3,10 +3,11 @@ package routerconf;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
+import ressources.FlowDescriptor;
+
 import log.Log;
 
 
-import flow.FlowDescriptor;
 
 public class RouterRSRVTable {
 	private static final String TAG = "RouterRSVRTable";

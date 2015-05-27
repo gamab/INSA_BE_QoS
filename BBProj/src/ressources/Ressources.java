@@ -14,16 +14,16 @@ public class Ressources {
 	 * Regexp pour parser un CSV avec les deux colonnes : 
 	 * cat codec_rate.csv | sed 's/[.]/_/g' | sed 's/\([^,]*\)[,]\(.*\)/public static final float \1 = \2f;/g'
 	 */	
-	public static final float G_711 = 87_2f;
-	public static final float G_729 = 31_2f;
-	public static final float G_723_1a = 21_9f;
-	public static final float G_723_1b = 20_8f;
-	public static final float G_726_a = 55_2f;
-	public static final float G_726_b = 47_2f;
-	public static final float G_728 = 31_5f;
-	public static final float G_722 = 87_2f;
-	public static final float ilbc_mode_2 = 38_4f;
-	public static final float ilbc_mode_3 = 28_8f;
+	public static final float G_711 = 87.2f;
+	public static final float G_729 = 31.2f;
+	public static final float G_723_1a = 21.9f;
+	public static final float G_723_1b = 20.8f;
+	public static final float G_726_a = 55.2f;
+	public static final float G_726_b = 47.2f;
+	public static final float G_728 = 31.5f;
+	public static final float G_722 = 87.2f;
+	public static final float ilbc_mode_2 = 38.4f;
+	public static final float ilbc_mode_3 = 28.8f;
 
 	/**
 	 * Mapping a codecs name to a transmission rate
