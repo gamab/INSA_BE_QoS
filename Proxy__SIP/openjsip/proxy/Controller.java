@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 
 public class Controller {
     private static NI ni;
+    private static Proxy prox;
     private static int id=1;
     
     /**
@@ -28,9 +29,10 @@ public class Controller {
     * classes.Cf pattern MVC
     */
     
-    public Controller(NI ni) 
+    public Controller(NI ni,Proxy prox) 
     {
        this.ni = ni;
+       this.prox = prox;
     }
     
 
@@ -87,14 +89,16 @@ public class Controller {
          public void responseMessage_Ack()
     {        
         InetAddress addr=this.ni.getServer().getPacket().getAddress(); 
-        System.out.println("receive : Message[OK] from " + addr.getHostAddress());        
+        System.out.println("receive : Message[OK] from " + addr.getHostAddress());
+        this.prox.setVerifRessources(true);        
     }
          
     //***************Receive No_ACK********************//      
       public void responseMessage_NoAck()
     {
 		InetAddress addr=this.ni.getServer().getPacket().getAddress();  
-        System.out.println("receive : Message[NOK] from "+addr.getHostAddress());         
+        System.out.println("receive : Message[NOK] from "+addr.getHostAddress()); 
+        this.prox.setVerifRessources(false);         
     }  
       
     //***************Receive Bye********************//     
@@ -107,6 +111,11 @@ public class Controller {
     public void setNI(NI ni)
     {
         this.ni = ni;
+    }
+    
+    public void setProxy(Proxy prox)
+    {
+        this.prox = prox;
     }
       
       

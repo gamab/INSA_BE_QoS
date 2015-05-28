@@ -132,6 +132,7 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
     private NI ni;  
     private Controller cont;   
     private Ressources r;
+    private boolean verifRessources = true;
     
     
     /**
@@ -337,7 +338,7 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
             System.setSecurityManager(new SecurityManager());
 
 	    ni=new NI();  
-        cont=new Controller(ni);        
+        cont=new Controller(ni,this);        
         ni.setCont(cont); 
         r=new Ressources();
 
@@ -2356,223 +2357,24 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 
         Ok(response,cseqHeader,statusCode);
         
-        if (log.isDebugEnabled())
+        System.out.println(".......waiting for");
+        Thread.sleep(50);
+        System.out.println(".......end");
+        
+        /////////////////////////////////////////////////////////////////////////
+        
+        if (getVerifRessources ())
         {
-            log.debug("-------------------");
-            log.debug("Incoming " + cseqHeader.getMethod() + " response from "+(contactHeader != null ? contactHeader.getAddress() : "No Contact header"));
-            log.debug("Status: " + statusCode + " reason: " + reason);
-        }
-
-        if (log.isTraceEnabled())
-            log.trace("\n" + response.toString());
-      
-
-        /**
-         * 16.7 Response Processing
-         *
-         * When a response is received by an element, it first tries to locate a
-         * client transaction (Section 17.1.3) matching the response.  If none
-         * is found, the element MUST process the response (even if it is an
-         * informational response) as a stateless proxy (described below).  If a
-         * match is found, the response is handed to the client transaction.
-         *
-         *      Forwarding responses for which a client transaction (or more
-         *      generally any knowledge of having sent an associated request) is
-         *      not found improves robustness.  In particular, it ensures that
-         *     "late" 2xx responses to INVITE requests are forwarded properly.
-         */
-
-        if (clientTransaction == null)
-        {
-            if (log.isTraceEnabled())
-                log.trace("ClientTransaction is null. Forwarding the response statelessly.");
-            
-            processResponseStatelessly(response, sipProvider);
-            return;
-        }
-
-        /**
-         * The proxy locates the "response context" it created before
-         * forwarding the original request using the key described in
-         * Section 16.6. The remaining processing steps take place in this
-         * context.
-         */
-        // The response context feature in bundled with TransactionMapping object
-        TransactionsMapping transactionsMapping = (TransactionsMapping) clientTransaction.getApplicationData();
-        if (transactionsMapping == null)
-        {
-            if (log.isDebugEnabled())
-                log.debug("Response context cannot be found for this response. Forwarding the response statelessly.");
-
-            processResponseStatelessly(response, sipProvider);
-            return;
-        }
-
-        // Server transaction object cannot be null because TransactionMapping constructor throws NullPointerException,
-        // but we check it anyway for sure
-        ServerTransaction serverTransaction = transactionsMapping.getServerTransaction();
-        if (serverTransaction == null)
-        {
-            if (log.isDebugEnabled())
-                log.debug("Server transaction cannot be found for this response. Dropped.");
-
-            return;
-        }
-
-        /**
-         * 2. Update timer C for provisional responses
-         *
-         * For an INVITE transaction, if the response is a provisional
-         * response with status codes 101 to 199 inclusive (i.e., anything
-         * but 100), the proxy MUST reset timer C for that client
-         * transaction.  The timer MAY be reset to a different value, but
-         * this value MUST be greater than 3 minutes.
-         */
-
-        if (statusCode >= 101 && statusCode <= 199 && cseqHeader.getMethod().equals(Request.INVITE))
-        {
-            // As java.util.Timer cannot update delays,  we have to recreate one
-            transactionsMapping.cancelTimerC(clientTransaction);
-
-            Timer timer = new Timer();
-            TimerCTask timerTask = new TimerCTask(clientTransaction, sipProvider, this, log);
-
-            transactionsMapping.registerTimerC(timer, clientTransaction);
-            timer.schedule(timerTask, timercPeriod);
-
-            if (log.isTraceEnabled())
-                log.trace("Timer C updated for CT "+clientTransaction);
-        }
-
-        /**
-         * 3.  Via
-         *
-         * The proxy removes the topmost Via header field value from the
-         * response. If no Via header field values remain in the response,
-         * the response was meant for this element and MUST NOT be
-         * forwarded. The remainder of the processing described in this
-         * section is not performed on this message, the UAC processing
-         * rules described in Section 8.1.3 are followed instead (transport
-         * layer processing has already occurred).
-         */
-
-        if (log.isTraceEnabled())
-            log.trace("Removing topmost Via header.");
-
-        response.removeFirst(ViaHeader.NAME);
-
-        ListIterator viaList = response.getHeaders(ViaHeader.NAME);
-        if (viaList == null || !viaList.hasNext())
-        {
-            if (log.isDebugEnabled())
-                log.debug("Response has no more Via headers. The response is for the proxy. Not forwarded.");
-
-            checkResponseContext(transactionsMapping);
-            return;
-        }
-
-        /**
-         * Final responses received are stored in the response context
-         * <b>until a final response is generated on the server transaction</b>
-         */
-        if (serverTransaction.getState().getValue() >= TransactionState._COMPLETED)
-        {
-            /**
-             *  After a final response has been sent on the server transaction,
-             *  the following responses MUST be forwarded immediately:
-             *
-             *  -  Any 2xx response to an INVITE request
-             */
-
-            if (statusCode >= 200 && statusCode <= 299 && cseqHeader.getMethod().equals(Request.INVITE))
-            {
-                sendResponseImmediately(response, transactionsMapping);
-                return;
-            }
-            else
-            {
-                /**
-                 * A stateful proxy MUST NOT immediately forward any other responses.
-                 */
-                return;
-            }
-        }
-
-        /**
-         * Until a final response has been sent on the server transaction,
-         * the following responses MUST be forwarded immediately:
-         *
-         * -  Any provisional response other than 100 (Trying)
-         */
-        if (!((SIPResponse) response).isFinalResponse())
-        {
-            if (statusCode == Response.TRYING)
-            {
-                if (log.isDebugEnabled())
-                    log.debug("Response "+statusCode+" ("+response.getReasonPhrase()+") is not forwarded.");
-
-                return;
-            }
-            else
-            {
-                if (log.isTraceEnabled())
-                    log.trace("Response is 1XX, so forwarding immediately.");
-
-                sendResponseImmediately(response, transactionsMapping);
-                return;
-            }
-        }
-
-        /**
-         * 4.  Add response to context
-         *
-         * Final responses received are stored in the response context
-         * until a final response is generated on the server transaction
-         * associated with this context.  The response may be a candidate
-         * for the best final response to be returned on that server
-         * transaction.  Information from this response may be needed in
-         * forming the best response, even if this response is not chosen.
-         */
-        transactionsMapping.getResponseContext().addFinalResponse(response);
-
-        /**
-         * todo Add recursion support if desired
-         */
-
-        /**
-         * 5.  Check response for forwarding
-         *
-         * Until a final response has been sent on the server transaction,
-         * the following responses MUST be forwarded immediately:
-         *
-         *      -  Any provisional response other than 100 (Trying)
-         *
-         *      -  Any 2xx response
-         */
-        if (statusCode >= 200 && statusCode <= 299)
-        {
-            if (log.isTraceEnabled())
-                log.trace("2XX are to be forwarded immediately.");
-
-            sendResponseImmediately(response, transactionsMapping);
-            return;
-        }
-
-        /**
-         * If a 6xx response is received, it is not immediately forwarded,
-         * but the stateful proxy SHOULD cancel all client pending
-         * transactions as described in Section 10, and it MUST NOT create
-         * any new branches in this context.
-         */
-        else if (statusCode >= 600)
-        {
-            cancelPendingTransactions(transactionsMapping.getClientTransactionsArray(), sipProvider);
-            /**
-             * todo 600, If recursion support is added, do not create any new branches in this context.
-             */
-        }
-
-        checkResponseContext(transactionsMapping);
+			System.out.println("processIncomingResponse [Ressources OK; Send OK to clients SIP]");
+			messageOK(response,cseqHeader,contactHeader,reason,clientTransaction,statusCode,sipProvider);
+		}
+		
+		else 
+		{
+			System.out.println("processIncomingResponse [Ressources NOK; Send Bye to clients SIP]");
+			messageBYE();
+		}
+        /////////////////////////////////////////////////////////////////////////
     }
 
 
@@ -2902,6 +2704,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
         this.rate = rate;
     }    
     
+    public void setVerifRessources ( boolean verifRessources) {
+		this.verifRessources = verifRessources;
+	}
+    
     public String getIp_source() {
         return this.ip_source;
     }
@@ -2921,6 +2727,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
     public float getTransmRate() {
         return this.r.transmRate.get(rate);
     }
+    
+    public boolean getVerifRessources () {
+		return this.verifRessources;
+	}
     
     public void printFlux() {
 		System.out.println("**********************************************************************");
@@ -3136,6 +2946,255 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
                  System.out.println("ERROR [free_session<== @IP]");
       } 
        
-   }   
+   }
+   
+   public void messageOK(Response response,CSeqHeader cseqHeader,ContactHeader contactHeader,String reason,ClientTransaction clientTransaction,int statusCode,SipProvider sipProvider)
+{
+	if (log.isDebugEnabled())
+    {
+        log.debug("-------------------");
+        log.debug("Incoming " + cseqHeader.getMethod() + " response from "+(contactHeader != null ? contactHeader.getAddress() : "No Contact header"));
+        log.debug("Status: " + statusCode + " reason: " + reason);
+    }
+
+    if (log.isTraceEnabled())
+          log.trace("\n" + response.toString());
+      
+
+        /**
+         * 16.7 Response Processing
+         *
+         * When a response is received by an element, it first tries to locate a
+         * client transaction (Section 17.1.3) matching the response.  If none
+         * is found, the element MUST process the response (even if it is an
+         * informational response) as a stateless proxy (described below).  If a
+         * match is found, the response is handed to the client transaction.
+         *
+         *      Forwarding responses for which a client transaction (or more
+         *      generally any knowledge of having sent an associated request) is
+         *      not found improves robustness.  In particular, it ensures that
+         *     "late" 2xx responses to INVITE requests are forwarded properly.
+         */
+
+        if (clientTransaction == null)
+        {
+            if (log.isTraceEnabled())
+                log.trace("ClientTransaction is null. Forwarding the response statelessly.");
+            
+            processResponseStatelessly(response, sipProvider);
+            return;
+        }
+
+        /**
+         * The proxy locates the "response context" it created before
+         * forwarding the original request using the key described in
+         * Section 16.6. The remaining processing steps take place in this
+         * context.
+         */
+        // The response context feature in bundled with TransactionMapping object
+        TransactionsMapping transactionsMapping = (TransactionsMapping) clientTransaction.getApplicationData();
+        if (transactionsMapping == null)
+        {
+            if (log.isDebugEnabled())
+                log.debug("Response context cannot be found for this response. Forwarding the response statelessly.");
+
+            processResponseStatelessly(response, sipProvider);
+            return;
+        }
+
+        // Server transaction object cannot be null because TransactionMapping constructor throws NullPointerException,
+        // but we check it anyway for sure
+        ServerTransaction serverTransaction = transactionsMapping.getServerTransaction();
+        if (serverTransaction == null)
+        {
+            if (log.isDebugEnabled())
+                log.debug("Server transaction cannot be found for this response. Dropped.");
+
+            return;
+        }
+
+        /**
+         * 2. Update timer C for provisional responses
+         *
+         * For an INVITE transaction, if the response is a provisional
+         * response with status codes 101 to 199 inclusive (i.e., anything
+         * but 100), the proxy MUST reset timer C for that client
+         * transaction.  The timer MAY be reset to a different value, but
+         * this value MUST be greater than 3 minutes.
+         */
+
+        if (statusCode >= 101 && statusCode <= 199 && cseqHeader.getMethod().equals(Request.INVITE))
+        {
+            // As java.util.Timer cannot update delays,  we have to recreate one
+            transactionsMapping.cancelTimerC(clientTransaction);
+
+            Timer timer = new Timer();
+            TimerCTask timerTask = new TimerCTask(clientTransaction, sipProvider, this, log);
+
+            transactionsMapping.registerTimerC(timer, clientTransaction);
+            timer.schedule(timerTask, timercPeriod);
+
+            if (log.isTraceEnabled())
+                log.trace("Timer C updated for CT "+clientTransaction);
+        }
+
+        /**
+         * 3.  Via
+         *
+         * The proxy removes the topmost Via header field value from the
+         * response. If no Via header field values remain in the response,
+         * the response was meant for this element and MUST NOT be
+         * forwarded. The remainder of the processing described in this
+         * section is not performed on this message, the UAC processing
+         * rules described in Section 8.1.3 are followed instead (transport
+         * layer processing has already occurred).
+         */
+
+        if (log.isTraceEnabled())
+            log.trace("Removing topmost Via header.");
+
+        response.removeFirst(ViaHeader.NAME);
+
+        ListIterator viaList = response.getHeaders(ViaHeader.NAME);
+        if (viaList == null || !viaList.hasNext())
+        {
+            if (log.isDebugEnabled())
+                log.debug("Response has no more Via headers. The response is for the proxy. Not forwarded.");
+
+            checkResponseContext(transactionsMapping);
+            return;
+        }
+
+        /**
+         * Final responses received are stored in the response context
+         * <b>until a final response is generated on the server transaction</b>
+         */
+        if (serverTransaction.getState().getValue() >= TransactionState._COMPLETED)
+        {
+            /**
+             *  After a final response has been sent on the server transaction,
+             *  the following responses MUST be forwarded immediately:
+             *
+             *  -  Any 2xx response to an INVITE request
+             */
+
+            if (statusCode >= 200 && statusCode <= 299 && cseqHeader.getMethod().equals(Request.INVITE))
+            {
+                sendResponseImmediately(response, transactionsMapping);
+                return;
+            }
+            else
+            {
+                /**
+                 * A stateful proxy MUST NOT immediately forward any other responses.
+                 */
+                return;
+            }
+        }
+
+        /**
+         * Until a final response has been sent on the server transaction,
+         * the following responses MUST be forwarded immediately:
+         *
+         * -  Any provisional response other than 100 (Trying)
+         */
+        if (!((SIPResponse) response).isFinalResponse())
+        {
+            if (statusCode == Response.TRYING)
+            {
+                if (log.isDebugEnabled())
+                    log.debug("Response "+statusCode+" ("+response.getReasonPhrase()+") is not forwarded.");
+
+                return;
+            }
+            else
+            {
+                if (log.isTraceEnabled())
+                    log.trace("Response is 1XX, so forwarding immediately.");
+
+                sendResponseImmediately(response, transactionsMapping);
+                return;
+            }
+        }
+
+        /**
+         * 4.  Add response to context
+         *
+         * Final responses received are stored in the response context
+         * until a final response is generated on the server transaction
+         * associated with this context.  The response may be a candidate
+         * for the best final response to be returned on that server
+         * transaction.  Information from this response may be needed in
+         * forming the best response, even if this response is not chosen.
+         */
+        transactionsMapping.getResponseContext().addFinalResponse(response);
+
+        /**
+         * todo Add recursion support if desired
+         */
+
+        /**
+         * 5.  Check response for forwarding
+         *
+         * Until a final response has been sent on the server transaction,
+         * the following responses MUST be forwarded immediately:
+         *
+         *      -  Any provisional response other than 100 (Trying)
+         *
+         *      -  Any 2xx response
+         */
+        if (statusCode >= 200 && statusCode <= 299)
+        {
+            if (log.isTraceEnabled())
+                log.trace("2XX are to be forwarded immediately.");
+
+            sendResponseImmediately(response, transactionsMapping);
+            return;
+        }
+
+        /**
+         * If a 6xx response is received, it is not immediately forwarded,
+         * but the stateful proxy SHOULD cancel all client pending
+         * transactions as described in Section 10, and it MUST NOT create
+         * any new branches in this context.
+         */
+        else if (statusCode >= 600)
+        {
+            cancelPendingTransactions(transactionsMapping.getClientTransactionsArray(), sipProvider);
+            /**
+             * todo 600, If recursion support is added, do not create any new branches in this context.
+             */
+        }
+
+        checkResponseContext(transactionsMapping);
+    }
+    
+    public void messageBYE()
+    {
+		//////////////////////////////////  1   ////////////////////////////////////////
+		Request byeRequest = messageFactory.createRequest(Request.BYE);
+		
+		((SipURI) byeRequest.getRequestURI()).removeParameter("transport");
+		MaxForwardsHeader mf = ProtocolObjects.headerFactory.createMaxForwardsHeader(10);
+		byeRequest.addHeader(mf);
+		((ViaHeader) byeRequest.getHeader(ViaHeader.NAME)).setTransport(ProtocolObjects.transport);
+		Address address = ProtocolObjects.addressFactory.createAddress("Shootme <sip:"+ getIp_dest() + ":" + getPort_dest() + ">");
+		ContactHeader contactHeader = ProtocolObjects.headerFactory.createContactHeader(address);
+		byeRequest.setHeader(contactHeader);
+		ClientTransaction ct = sipProvider.getNewClientTransaction(byeRequest);
+		ct.sendRequest();
+		//////////////////////////////////  2   ////////////////////////////////////////
+		Request byeRequest1 = messageFactory.createRequest(Request.BYE);
+		
+		((SipURI) byeRequest1.getRequestURI()).removeParameter("transport");
+		MaxForwardsHeader mf1 = ProtocolObjects.headerFactory.createMaxForwardsHeader(10);
+		byeRequest1.addHeader(mf1);
+		((ViaHeader) byeRequest1.getHeader(ViaHeader.NAME)).setTransport(ProtocolObjects.transport);
+		Address address1 = ProtocolObjects.addressFactory.createAddress("Shootme <sip:"+ getIp_source() + ":" + getPort_source() + ">");
+		ContactHeader contactHeader1 = ProtocolObjects.headerFactory.createContactHeader(address);
+		byeRequest.setHeader(contactHeader1);
+		ClientTransaction ct1 = sipProvider.getNewClientTransaction(byeRequest1);
+		ct1.sendRequest();
+	}  
    
 }
