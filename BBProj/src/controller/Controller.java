@@ -199,8 +199,51 @@ public class Controller {
 		return null;
 	}
 
-	public void processBye(Bye msg) {
-		// TODO Auto-generated method stub
+	public boolean processBye(Bye msg) {
+		
+      //Extract flow from reservation
+		FlowDescriptor flow1 = msg.getFlow1();
+		FlowDescriptor flow2 = msg.getFlow2();
+
+	 //Identify Router in charge of the flow
+		Inet4Address ipSrc1 = flow1.getIpSrc();
+		Inet4Address ipSrc2 = flow2.getIpSrc();
+
+		Log.d(TAG, "Flow 1 of bye is " + flow1);
+	    Log.d(TAG, "Flow 2 of bye is " + flow2);
+	    
+	    
+	    RouterDescriptor rtrD1 = this.getRouteurForIp(ipSrc1);
+		if (rtrD1 == null) {
+			Log.e(TAG, "Could not find source routeur 1");
+			return false;
+		}
+		else {
+			Log.d(TAG, "Router for flow 1 is : " + rtrD1);
+		}
+		
+		RouterDescriptor rtrD2 = this.getRouteurForIp(ipSrc2);
+		if (rtrD2 == null) {
+			Log.e(TAG, "Could not find source routeur 2");
+			return false;
+		}
+		else {
+			Log.d(TAG, "Router for flow 2 is : " + rtrD2);
+		}
+		
+		//Check if routeur can accept the flow
+		boolean freeflow1 = this.rtrTable.get(rtrD1).freeFlowRSRV(flow1);
+		boolean freeflow2 = this.rtrTable.get(rtrD2).freeFlowRSRV(flow2);
+		
+		if (! freeflow1) {
+			Log.w(TAG, "Could not free flow 1");
+		}
+		if (! freeflow2) {
+			Log.w(TAG, "Could not free flow 2");
+		}
+		
+		
+		return false;
 
 	}
 

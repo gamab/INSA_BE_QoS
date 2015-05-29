@@ -18,6 +18,22 @@ public class Bye extends Message{
 			super();
 			this.flow1 = flow1;
 			this.flow2 = flow2;
-		}   
+		}
+        
+        public FlowDescriptor getFlow1() {
+			return flow1;
+		}
+
+		public void setFlow1(FlowDescriptor flow1) {
+			this.flow1 = flow1;
+		}
+
+		public FlowDescriptor getFlow2() {
+			return flow2;
+		}
+
+		public void setFlow2(FlowDescriptor flow2) {
+			this.flow2 = flow2;
+		}
         
 }
