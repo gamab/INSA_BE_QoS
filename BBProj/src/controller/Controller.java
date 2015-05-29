@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.ListIterator;
 
 import com.jcraft.jsch.JSchException;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import log.Log;
 import messages.Bye;
@@ -25,11 +26,12 @@ public class Controller {
 	public static final String LOGIN = "login";
 	public static final String PASS = "mdp";
 	public static final int TELNETPORT = 23;
+	public static final int SSHPORT = 22;
 
 	private ArrayList<RouterDescriptor> rtrDs;
 	private HashMap<RouterDescriptor,RouterRSRVTable> rtrTable;
 
-	private static final String nameScriptResa = "~/echo_poule.sh";
+	private static final String nameScriptResa = "ifconfig eth2";
 
 	public Controller() {
 		rtrDs = new ArrayList<>();
@@ -54,7 +56,6 @@ public class Controller {
 					(Inet4Address)Inet4Address.getByAddress(ipRtr), 
 					(Inet4Address)Inet4Address.getByAddress(prefix),mask,
 					availRess);
-			Log.d(TAG,"Created router descriptor " + rtrD);
 
 			rtrDs.add(rtrD);
 			rtrTable.put(rtrD, new RouterRSRVTable(rtrD.getMaxRess()));
@@ -71,7 +72,6 @@ public class Controller {
 					(Inet4Address)Inet4Address.getByAddress(ipRtr), 
 					(Inet4Address)Inet4Address.getByAddress(prefix),mask,
 					availRess);
-			Log.d(TAG,"Created router descriptor " + rtrD);
 
 			rtrDs.add(rtrD);
 			rtrTable.put(rtrD, new RouterRSRVTable(rtrD.getMaxRess()));
@@ -105,6 +105,9 @@ public class Controller {
 		//Identify Router in charge of the flow
 		Inet4Address ipSrc1 = flow1.getIpSrc();
 		Inet4Address ipSrc2 = flow2.getIpSrc();
+
+		Log.d(TAG, "Flow 1 of resa is " + flow1);
+		Log.d(TAG, "Flow 2 of resa is " + flow2);
 		
 		RouterDescriptor rtrD1 = this.getRouteurForIp(ipSrc1);
 		if (rtrD1 == null) {
@@ -112,7 +115,7 @@ public class Controller {
 			return false;
 		}
 		else {
-			Log.d(TAG, "Could find source routeur 1");
+			Log.d(TAG, "Router for flow 1 is : " + rtrD1);
 		}
 		
 		RouterDescriptor rtrD2 = this.getRouteurForIp(ipSrc2);
@@ -121,7 +124,7 @@ public class Controller {
 			return false;
 		}
 		else {
-			Log.d(TAG, "Could find source routeur 2");
+			Log.d(TAG, "Router for flow 2 is : " + rtrD2);
 		}
 
 		//Check if routeur can accept the flow
@@ -154,18 +157,18 @@ public class Controller {
 //		trc.disconnect();
 		String ipRtr;
 		ipRtr = rtrD1.getRtrIp().getHostAddress();
-		Log.d(TAG, "Connection telnet to : " + ipRtr);
+		Log.d(TAG, "Connection ssh to : " + ipRtr);
 		try {
-			SSHRouterClient.sendCommand(ipRtr, 22, this.LOGIN, this.PASS, nameScriptResa);
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
 		} catch (JSchException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			Log.e(TAG, "Could not execute commande");
 		}
 		ipRtr = rtrD2.getRtrIp().getHostAddress();
-		Log.d(TAG, "Connection telnet to : " + ipRtr);
+		Log.d(TAG, "Connection ssh to : " + ipRtr);
 		try {
-			SSHRouterClient.sendCommand(ipRtr, 22, this.LOGIN, this.PASS, nameScriptResa);
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
 		} catch (JSchException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -174,6 +177,11 @@ public class Controller {
 		
 		return true;
 	}
+
+	private String hashFlowForId(FlowDescriptor fd) {
+        return DigestUtils.sha1Hex(fd.toString());
+    }
+
 
 	private RouterDescriptor getRouteurForIp(Inet4Address ipSrc) {
 		// TODO Auto-generated method stub

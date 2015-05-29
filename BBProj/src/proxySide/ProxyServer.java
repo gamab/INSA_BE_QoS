@@ -68,6 +68,7 @@ public class ProxyServer {
 			}
 
 			if (msg instanceof Reservation) {
+				Log.d(TAG, "Received a reservation");
 				boolean couldAccept = this.ctrlr.processReservation((Reservation) msg);
 
 				//here send the answer to the proxy
@@ -81,6 +82,7 @@ public class ProxyServer {
 				}
 			}
 			else if (msg instanceof Bye) {
+				Log.d(TAG, "Received a bye message");
 				this.ctrlr.processBye((Bye) msg);		        	
 			}
 			
