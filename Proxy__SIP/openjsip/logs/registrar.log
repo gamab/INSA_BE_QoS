@@ -1,0 +1,16 @@
+2015-05-29 22:09:07,550  [main] INFO  - Starting Registrar v0.0.4...
+2015-05-29 22:09:07,552  [main] INFO  - Connecting to Location Service server at localhost:1099 ...
+2015-05-29 22:09:07,585  [main] INFO  - Successfully connected.
+2015-05-29 22:09:07,642  [main] WARN  - No domains configured. Retreiving the domain list from Location Service...
+2015-05-29 22:09:07,644  [main] INFO  - Registrar is responsible for domains: openjsip.net
+2015-05-29 22:09:07,644  [main] INFO  - Authentication disabled.
+2015-05-29 22:09:07,644  [main] INFO  - Registration lifetime (seconds): min 60, max 3600
+2015-05-29 22:09:07,647  [main] ERROR - Cannot start SNMP agent at port 1162: Adresse déjà utilisée
+2015-05-29 22:09:07,666  [main] INFO  - Registrar registered as "Registrar" within RMI registry at localhost:1099
+2015-05-29 22:09:07,666  [main] INFO  - Registrar started...
+2015-05-29 22:09:10,409 4151170897@192_168_1_104 [RMI TCP Connection(2)-127.0.0.1] DEBUG - -------------------
+2015-05-29 22:09:10,409 4151170897@192_168_1_104 [RMI TCP Connection(2)-127.0.0.1] DEBUG - Incoming REGISTER request sip:192.168.1.100 To: "user1" <sip:user1@192.168.1.100>
+2015-05-29 22:09:10,456 4151170897@192_168_1_104 [RMI TCP Connection(2)-127.0.0.1] DEBUG - Replied 200 ( OK ) 
+2015-05-29 22:09:18,564 4151170897@192_168_1_104 [RMI TCP Connection(2)-127.0.0.1] DEBUG - -------------------
+2015-05-29 22:09:18,564 4151170897@192_168_1_104 [RMI TCP Connection(2)-127.0.0.1] DEBUG - Incoming REGISTER request sip:192.168.1.100 To: "user1" <sip:user1@192.168.1.100>
+2015-05-29 22:09:18,575 4151170897@192_168_1_104 [RMI TCP Connection(2)-127.0.0.1] DEBUG - Replied 200 ( OK ) 
