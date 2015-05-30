@@ -243,6 +243,27 @@ public class Controller {
 		}
 		
 		
+		//lancement des scripts sur le TC
+		String ipRtr;
+		ipRtr = rtrD1.getRtrIp().getHostAddress();
+		Log.d(TAG, "Connection ssh to : " + ipRtr);
+		try {
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
+		} catch (JSchException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.e(TAG, "Could not execute commande");
+		}
+		ipRtr = rtrD2.getRtrIp().getHostAddress();
+		Log.d(TAG, "Connection ssh to : " + ipRtr);
+		try {
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
+		} catch (JSchException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.e(TAG, "Could not execute commande");
+		}
+		
 		return false;
 
 	}
