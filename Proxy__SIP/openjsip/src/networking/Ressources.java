@@ -8,6 +8,8 @@ public class Ressources {/**
 	 * cat codec_rate.csv | sed 's/[.]/_/g' | sed 's/\([^,]*\)[,]\(.*\)/public static final float \1 = \2f;/g'
 	 */	
 	public static final float G_711 = 80.0f;
+	public static final float G_722 = 87.2f;
+	public static final float G_728 = 31.5f;
 	public static final float G_729 = 32.0f;
 	public static final float G_723_1a = 21.0f;
 	public static final float G_723_1b = 15.0f;
@@ -35,5 +37,58 @@ public class Ressources {/**
 		transmRate.put("iLBC", ilbc);
 		transmRate.put("GSM", gsm);
 		transmRate.put("SpeeX", speex);
+	}
+	
+	public float getTransmission (String codec) {
+		if (codec.equals("PCMU")) {
+			return G_711;
+		}
+		else if (codec.equals("PCMA")) {
+			return G_711;
+		}
+		else if (codec.equals("CSA-CELP")) {
+			return G_729;
+		}
+		else if (codec.equals("MP-MLQ")) {
+			return G_723_1a;
+		}
+		else if (codec.equals("A-CELP")) {
+			return G_723_1b;
+		}
+		else if (codec.equals("AD-PCM")) {
+			return G_726_a;
+		}
+		else if (codec.equals("iLBC")) {
+			return ilbc;
+		}
+		else if (codec.equals("GSM")) {
+			return gsm;
+		}
+		else if (codec.equals("SpeeX")) {
+			return speex;
+		}
+		else if (codec.equals("G722")) {
+			return G_722;
+		}
+		else if (codec.equals("G728")) {
+			return G_728;
+		}
+		else if (codec.equals("G711")) {
+			return G_711;
+		}
+		else if (codec.equals("G729")) {
+			return G_729;
+		}
+		else if (codec.equals("G726")) {
+			return G_726_a;
+		}
+		else if (codec.equals("G723")) {
+			return G_723_1a;
+		}
+		else {
+			System.out.println("CAREFULL DID NOT FIND THE CODEC");
+			return G_711;
+		}
+		
 	}
 }
