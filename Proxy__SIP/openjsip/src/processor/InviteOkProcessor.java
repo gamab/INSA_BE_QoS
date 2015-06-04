@@ -34,15 +34,10 @@ public class InviteOkProcessor {
 		r = new Ressources();
 		// TODO Auto-generated constructor stub
 	}
-	public FlowDescriptor getF1() {
-		return f1;
-	}
-	public FlowDescriptor getF2() {
-		return f2;
-	}
 
 	public void processInvite(Request request)
 	{
+		System.out.println("°°°°°°°°°°°°°°°° processInvite() °°°°°°°°°°°°°°°°");
 		SIPRequest siprequest = (SIPRequest) request;
 		String sdpContent = new String(siprequest.getRawContent());
 
@@ -53,7 +48,6 @@ public class InviteOkProcessor {
 			String chaine = requestSDP.toString(); // recuperation de la chaine a  parser
 			System.out.println(chaine);       		
 
-			String aux = new String();// declaration des variables auxiliaires
 			Pattern p;
 			Matcher m;
 
@@ -65,7 +59,6 @@ public class InviteOkProcessor {
 				if (m.find())
 				{
 					f2.setpDst(Integer.parseInt(m.group(1)));
-					//System.out.println(aux);
 				}
 				System.out.println("************ Port_source f2 = "+f2.getpSrc());
 
@@ -99,7 +92,6 @@ public class InviteOkProcessor {
 		}
 	}
 
-	@SuppressWarnings("static-access")
 	public void processOk(Response response,CSeqHeader cseqHeader,int statusCode,Controller cont) {
 		if(statusCode == 200 && cseqHeader.getMethod().equals(Request.INVITE))
 		{
@@ -115,7 +107,7 @@ public class InviteOkProcessor {
 				SdpFactory sdpf = SdpFactory.getInstance(); // recuperation du message SDP
 				SessionDescription requestSDP = sdpf.createSessionDescription(sdpContent);
 				chaine=requestSDP.toString(); // recuperation de la chaine Ã  parser
-				//System.out.println(chaine);
+				System.out.println(chaine);
 
 				//********************************* RECUPERATION PORT DEST***************************//
 				try
@@ -143,6 +135,7 @@ public class InviteOkProcessor {
 					m = p.matcher(chaine);
 					if(m.find()){
 						extensionCodec = m.group(1);
+						System.out.println("Extension codec is : " + extensionCodec);
 					}
 				}
 				catch(PatternSyntaxException pse){
@@ -160,10 +153,11 @@ public class InviteOkProcessor {
 						f1.setIpDst((Inet4Address) Inet4Address.getByName(m.group(1)));
 						f2.setIpSrc((Inet4Address) Inet4Address.getByName(m.group(1)));
 					}
-					
-					f1.setTransmRate(r.transmRate.get(extensionCodec));
-					f2.setTransmRate(r.transmRate.get(extensionCodec));
-					
+
+					System.out.println("retrieve transmission rate");
+					f1.setTransmRate(r.getTransmission(extensionCodec));
+					f2.setTransmRate(r.getTransmission(extensionCodec));
+					System.out.println("YAY retrieved transmission rate");
 
 					System.out.println("************ IP_desti f1 = "+f1.getIpDst().getHostAddress());
 					System.out.println("************ IP_source f2 = "+f2.getIpSrc().getHostAddress());
@@ -187,11 +181,12 @@ public class InviteOkProcessor {
 			//*********** ENVOI DU MESSAGE AU BB **********//         	
             try
             {
-            	cont.sendReservation(getF1(),getF2()); 
+        		System.out.println("°°°°°°°Send resa for " + f1 + " and " + f2);
+            	cont.sendReservation(f1,f2); 
             }
   	        catch(UnknownHostException e){
                  System.out.println("ERROR [OK<== @IP]");
-	        }         
+	        }        
 			
 		}
 	}
@@ -201,7 +196,7 @@ public class InviteOkProcessor {
 	{	   
 	    try
 	    {   
-	         cont.sendBye(getF1(),getF2()); 	
+	         cont.sendBye(f1,f2); 	
 	    }
 	    catch(UnknownHostException e){
 	           System.out.println("ERROR [free_session<== @IP]");

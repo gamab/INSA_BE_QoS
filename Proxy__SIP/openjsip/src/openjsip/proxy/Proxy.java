@@ -1060,10 +1060,10 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 			this.reqProc.processInvite(request);
 		}
 		
-		if (method.equals("BYE"))
+		if (method.equals("BYE") && getVerifRessources())
         {
 			System.out.println("--------------------------------------------BYE--------------------------------------------");
-			this.reqProc.free_session(cont);                 
+			this.reqProc.free_session(cont);                
         }
 
 		if (log.isDebugEnabled())
@@ -1158,7 +1158,6 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 
 				if (method.equals("BYE"))
 				{
-					@SuppressWarnings("unused")
 					int a = 5;
 				}
 
@@ -1595,7 +1594,6 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 	/**
 	 * Create a flow by extracting info from the request
 	 */
-	@SuppressWarnings("unused")
 	private FlowDescriptor extractFlowInfo(Request request) {
 		// TODO Auto-generated method stub
 		return null;
@@ -2657,8 +2655,8 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 
 		else
 		{
-			System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!! [Ressources NOK; Send Bye to clients SIP] !!!!!!!!!!!!!!!!!!!!!!!!!!");
-			try 
+			//System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!! [Ressources NOK; Send Bye to clients SIP] !!!!!!!!!!!!!!!!!!!!!!!!!!");
+			/*try 
 			{
 				Properties properties = new Properties();
 				SipFactory sipFactory = SipFactory.getInstance();
@@ -2671,17 +2669,17 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 				messageFactory = sipFactory.createMessageFactory();
 					
 				//<<<<<<<<<<<<<<<<<<<< Sent to client 1 >>>>>>>>>>>>>>>>>>>//
-				SipURI requestURI1 = addressFactory.createSipURI("192.168.1.104","192.168.1.100");
-				// … Create other headers				
+				SipURI requestURI1 = addressFactory.createSipURI("192.168.1.104","192.168.1.100");			
+				// \85 Create other headers				
 				Request request1 = messageFactory.createRequest(requestURI1.toString());
 				// Create the client transaction
 				ClientTransaction byeTid1 =sipProvider.getNewClientTransaction(request1);
 				// send the request
 				byeTid1.sendRequest();
 				
-				//<<<<<<<<<<<<<<<<<<<< Sent to client 2 >>>>>>>>>>>>>>>>>>>//
+				//<<<<<<<<<<<<<<<<<<<< Sent to client 1 >>>>>>>>>>>>>>>>>>>//
 				SipURI requestURI2 = addressFactory.createSipURI("192.168.1.115","192.168.1.100");
-				// … Create other headers				
+				// \85 Create other headers				
 				Request request2 = messageFactory.createRequest(requestURI2.toString());
 				// Create the client transaction
 				ClientTransaction byeTid2 =sipProvider.getNewClientTransaction(request2);
@@ -2692,7 +2690,7 @@ public class Proxy extends UnicastRemoteObject implements SipListener, RemoteSer
 			catch(SipException e) 
 			{
 					System.out.println("SipException [CREATION BYE]");
-			}
+			}*/
 		}
 		
 	}
