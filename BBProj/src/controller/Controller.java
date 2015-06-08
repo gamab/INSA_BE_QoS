@@ -31,7 +31,9 @@ public class Controller {
 	private ArrayList<RouterDescriptor> rtrDs;
 	private HashMap<RouterDescriptor,RouterRSRVTable> rtrTable;
 
-	private static final String nameScriptResa = "ifconfig eth2";
+	private static final String nameScriptResa = "./TC_ajout_fille.sh ";
+	private static final String nameScriptFree = "./TC_suppression_file.sh ";
+	
 
 	public Controller() {
 		rtrDs = new ArrayList<>();
@@ -45,11 +47,11 @@ public class Controller {
 
 		try {
 			//Router 1
-			ipRtr = new byte[] {(byte)192,(byte)120,(byte)2,(byte)3};
+			ipRtr = new byte[] {(byte)172,(byte)16,(byte)1,(byte)2};	
 			idRtr = new byte[] {(byte)101,(byte)101,(byte)101,(byte)101};
 			prefix = new byte[] {(byte)192,(byte)168,(byte)1,(byte)0};
 			mask[0]=(byte)255; mask[1]=(byte)255; mask[2]=(byte)255; mask[3] = 0; 
-			availRess = 100.0f;
+			availRess = 1000.0f;
 
 			rtrD = new RouterDescriptor( 
 					(Inet4Address)Inet4Address.getByAddress(idRtr),
@@ -61,11 +63,11 @@ public class Controller {
 			rtrTable.put(rtrD, new RouterRSRVTable(rtrD.getMaxRess()));
 			
 			//Router 2
-			ipRtr = new byte[] {(byte)192,(byte)120,(byte)2,(byte)4};
+			ipRtr = new byte[] {(byte)172,(byte)16,(byte)2,(byte)5};
 			idRtr = new byte[] {(byte)102,(byte)102,(byte)102,(byte)102};
-			prefix = new byte[] {(byte)192,(byte)168,(byte)0,(byte)0};
+			prefix = new byte[] {(byte)192,(byte)168,(byte)2,(byte)0};
 			mask[0]=(byte)255; mask[1]=(byte)255; mask[2]=(byte)255; mask[3] = 0; 
-			availRess = 100.0f;
+			availRess = 1000.0f;
 
 			rtrD = new RouterDescriptor( 
 					(Inet4Address)Inet4Address.getByAddress(idRtr),
@@ -126,6 +128,11 @@ public class Controller {
 		else {
 			Log.d(TAG, "Router for flow 2 is : " + rtrD2);
 		}
+		
+		if (rtrD1 == rtrD2) {
+			Log.d(TAG, "Telephones are in the same subnet no need for reservation");
+			return true;
+		}
 
 		//Check if routeur can accept the flow
 		boolean flow1isAcceptable = this.rtrTable.get(rtrD1).isFlowAcceptable(flow1);
@@ -155,20 +162,29 @@ public class Controller {
 //		trc = new TelnetRouterClient(rtrD2.getRtrIp(), this.TELNETPORT, this.LOGGIN, this.PASS);
 //		trc.sendCommand(nameScriptResa);
 //		trc.disconnect();
-		String ipRtr;
+		String ipRtr,Paramflow1,Paramflow2;
 		ipRtr = rtrD1.getRtrIp().getHostAddress();
-		Log.d(TAG, "Connection ssh to : " + ipRtr);
+		//Param du scrip
+		Paramflow1=  " " +flow1.getIpSrc().getHostAddress() +  " " + flow1.getIpDst().getHostAddress() + " " 
+		        + Integer.toString(flow1.getpDst())+ " " + "IP" + " " + (int)Math.ceil(flow1.getTransmRate())  + "kbit " +hashFlowForId(flow2) + " " + "1";
+		
+		Paramflow2=  " " +flow2.getIpSrc().getHostAddress() + " " + flow2.getIpDst().getHostAddress() + " " 
+		        + Integer.toString(flow2.getpDst())+ " " + "IP" + " " + (int)Math.ceil(flow2.getTransmRate()) + "kbit " +hashFlowForId(flow2) + " " + "1";
+		
+		Log.d(TAG, "Connection ssh to : " + this.LOGIN + "@" + ipRtr);
+		Log.d(TAG, "Commande is : " +  nameScriptResa + Paramflow1);
 		try {
-			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa + Paramflow1 );
 		} catch (JSchException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			Log.e(TAG, "Could not execute commande");
 		}
 		ipRtr = rtrD2.getRtrIp().getHostAddress();
-		Log.d(TAG, "Connection ssh to : " + ipRtr);
+		Log.d(TAG, "Connection ssh to : " + this.LOGIN + "@" + ipRtr);
+		Log.d(TAG, "Commande is : " +  nameScriptResa + Paramflow2);
 		try {
-			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa+ Paramflow2);
 		} catch (JSchException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -179,7 +195,9 @@ public class Controller {
 	}
 
 	private String hashFlowForId(FlowDescriptor fd) {
-        return DigestUtils.sha1Hex(fd.toString());
+		String hash = DigestUtils.sha1Hex(fd.toString());
+		hash = hash.replaceAll("[a-f]","").substring(0, 3);
+        return hash;
     }
 
 
@@ -231,6 +249,11 @@ public class Controller {
 			Log.d(TAG, "Router for flow 2 is : " + rtrD2);
 		}
 		
+		if (rtrD1 == rtrD2) {
+			Log.d(TAG, "Telephones are in the same subnet no need for reservation");
+			return true;
+		}
+		
 		//Check if routeur can accept the flow
 		boolean freeflow1 = this.rtrTable.get(rtrD1).freeFlowRSRV(flow1);
 		boolean freeflow2 = this.rtrTable.get(rtrD2).freeFlowRSRV(flow2);
@@ -244,20 +267,26 @@ public class Controller {
 		
 		
 		//lancement des scripts sur le TC
-		String ipRtr;
+		String ipRtr, Paramsuppretion1,Paramsuppretion2;
 		ipRtr = rtrD1.getRtrIp().getHostAddress();
-		Log.d(TAG, "Connection ssh to : " + ipRtr);
+		
+		Paramsuppretion1= " IP "  + " " +  (int) Math.ceil(flow1.getTransmRate()) + "kbit " +hashFlowForId(flow2) + " " + "1";
+		
+		
+		Paramsuppretion2= " IP " + " " +  (int) Math.ceil(flow2.getTransmRate()) + "kbit " +hashFlowForId(flow2) + " " + "1";;
+		
+		Log.d(TAG, "Connection ssh to : " + this.LOGIN + "@" + ipRtr);
 		try {
-			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptFree +Paramsuppretion1);
 		} catch (JSchException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			Log.e(TAG, "Could not execute commande");
 		}
 		ipRtr = rtrD2.getRtrIp().getHostAddress();
-		Log.d(TAG, "Connection ssh to : " + ipRtr);
+		Log.d(TAG, "Connection ssh to : " + this.LOGIN + "@" + ipRtr);
 		try {
-			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptResa);
+			SSHRouterClient.sendCommand(ipRtr, this.SSHPORT, this.LOGIN, this.PASS, nameScriptFree + Paramsuppretion2);
 		} catch (JSchException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

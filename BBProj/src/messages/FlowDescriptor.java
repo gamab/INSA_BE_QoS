@@ -2,10 +2,14 @@ package messages;
 import java.io.Serializable;
 import java.net.Inet4Address;
 
+import log.Log;
+
 
 public class FlowDescriptor implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	
+	private static final String TAG = "FlowDescriptor";
 	
 	private Inet4Address ipSrc;
 	private Inet4Address ipDst;
@@ -62,26 +66,42 @@ public class FlowDescriptor implements Serializable {
 		this.proto = proto;
 	}
 	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof FlowDescriptor)
+			return equals((FlowDescriptor) o);
+		else
+			return false;
+	}
+	
 	public boolean equals(FlowDescriptor fd) {
+		Log.d(TAG,"Checks if  " + this.toString() + " equals " + fd.toString());
 		//compare all the fields of the flow descriptor
 		if (!this.ipSrc.equals(fd.getIpSrc())) {
+			Log.w(TAG,"Not equal ipsrc");
 			return false;
 		}
 		if (!this.ipDst.equals(fd.getIpDst())) {
+			Log.w(TAG,"Not equal ipdst");
 			return false;
 		}
 		if (!(this.pSrc == fd.getpSrc())) {
+			Log.w(TAG,"Not equal psrc");
 			return false;
 		}
 		if (!(this.pDst == fd.getpDst())) {
+			Log.w(TAG,"Not equal pdst");
 			return false;
 		}
 		if (!(this.transmRate == fd.getTransmRate())) {
+			Log.w(TAG,"Not equal transmR");
 			return false;			
 		}
-		if (!(this.proto == fd.getProto())) {
+		if (!(this.proto.equals(fd.getProto()))) {
+			Log.w(TAG,"Not equal proto");
 			return false;
 		}
+		Log.d(TAG,"Equal");
 		//if everything was equal then return true
 		return true;
 	}

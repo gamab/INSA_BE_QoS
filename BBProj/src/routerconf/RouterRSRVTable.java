@@ -29,6 +29,7 @@ public class RouterRSRVTable {
 	
 	public boolean acceptFlow(FlowDescriptor fd) {
 		if (isFlowAcceptable(fd)) {
+			Log.d(TAG,"Accepting " + fd.toString());
 			this.subFromAvailRess(fd.getTransmRate());
 			this.acceptedFlows.add(fd);
 			return true;
@@ -37,6 +38,7 @@ public class RouterRSRVTable {
 	}
 	
 	public boolean freeFlowRSRV(FlowDescriptor fd) {
+		Log.d(TAG,"Removing " + fd.toString() + " from " + acceptedFlows);
 		boolean foundFlow = this.acceptedFlows.remove(fd);
 		
 		if (foundFlow) {

@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.ListIterator;
 
 import log.Log;
 import messages.Bye;
@@ -22,9 +24,13 @@ public class ProxyServer {
 	private OutputStream os;
 	private InputStream is;
 	private Controller ctrlr;
+	
+	private ArrayList<Reservation> resRec;
+	
 
 	public ProxyServer(Controller ctrlr) throws IOException {
 		sock = new ServerSocket(port);
+		resRec = new ArrayList<>();
 		this.ctrlr = ctrlr;
 	}
 
@@ -34,7 +40,9 @@ public class ProxyServer {
 		while (numberFails < 3) {
 			Socket sockfd = null;
 			try {
+				Log.d(TAG, "Waiting for client");
 				sockfd = sock.accept();
+				Log.d(TAG, "Client connected");
 
 				os = sockfd.getOutputStream();
 				is = sockfd.getInputStream();
@@ -69,12 +77,26 @@ public class ProxyServer {
 
 			if (msg instanceof Reservation) {
 				Log.d(TAG, "Received a reservation");
-				boolean couldAccept = this.ctrlr.processReservation((Reservation) msg);
+				Reservation reza = (Reservation) msg;
+				if (!this.alreadyReceivedReza(reza)) {
+					boolean couldAccept;
+					Log.d(TAG, "It is a NEW reservation");
+					couldAccept = this.ctrlr.processReservation(reza);
+					Log.d(TAG, "Could accept reza ? " + couldAccept);
+					reza.setAck(couldAccept);
+					if (couldAccept) {
+						Log.d(TAG, "Remember Reservation");						
+						this.resRec.add(reza);						
+					}
+				}
+				else {
+					Log.d(TAG, "It is an OLD reservation => hence it was accepted");	
+					reza.setAck(true);
+				}
 
 				//here send the answer to the proxy
-				((Reservation) msg).setAck(couldAccept);
 				try {
-					os.write(msg.toArray(msg));
+					os.write(Message.toArray(reza));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -83,7 +105,16 @@ public class ProxyServer {
 			}
 			else if (msg instanceof Bye) {
 				Log.d(TAG, "Received a bye message");
-				this.ctrlr.processBye((Bye) msg);		        	
+				Reservation resa = new Reservation(((Bye) msg).getFlow1(), ((Bye) msg).getFlow2(), true);
+				int position = resaPosition(resa);
+				if (position != -1) {
+					Log.d(TAG,"Removing reservation from the arraylist");
+					this.resRec.remove(position);
+					this.ctrlr.processBye((Bye) msg);
+				}				
+			}
+			else {
+				Log.d(TAG, "Received an unknown message");				
 			}
 			
 			try {
@@ -101,5 +132,58 @@ public class ProxyServer {
 			e.printStackTrace();
 			Log.e(TAG, "Could not close sock");
 		}
+	}
+	
+	private boolean alreadyReceivedReza(Reservation resa) {
+		ListIterator<Reservation> lit = this.resRec.listIterator();
+		boolean found = false;
+		Reservation r;
+		while (lit.hasNext() && !found) {
+			r = lit.next();
+			//Log.d(TAG,"Check if " + resa.getFlow1() + " " + resa.getFlow2() + " = " + r.getResa().getFlow1() + " " + r.getResa().getFlow2());
+			found = resaAreSame(r,resa);
+		}
+		return found;
+	}
+	
+	private boolean resaAreSame(Reservation r, Reservation resa) {
+		// TODO Auto-generated method stub
+		if (! resa.getFlow1().equals(r.getFlow1())) {
+			return false;
+		}
+		if (! resa.getFlow2().equals(r.getFlow2())) {
+			return false;
+		}
+		return true;
+	}
+//
+//	private boolean rezaWasAccepted(Reservation resa) {
+//		ListIterator<Reservation> lit = this.resRec.listIterator();
+//		Reservation r;
+//		while (lit.hasNext()) {
+//			r = lit.next();
+//			//Log.d(TAG,"Check if " + resa.getFlow1() + " " + resa.getFlow2() + " = " + r.getResa().getFlow1() + " " + r.getResa().getFlow2());
+//			if (resaAreSame(r,resa)) {
+//				Log.d(TAG,"Reza was accepted ?" + r.getAck());
+//				return r.getAck();
+//			}
+//		}
+//		return false;
+//	}
+	
+	private int resaPosition(Reservation resa) {
+		ListIterator<Reservation> lit = this.resRec.listIterator();
+		int position = -1;
+		Reservation r;
+		while (lit.hasNext()) {
+			position++;
+			r = lit.next();
+			//Log.d(TAG,"Check if " + resa.getFlow1() + " " + resa.getFlow2() + " = " + r.getResa().getFlow1() + " " + r.getResa().getFlow2());
+			if (resaAreSame(r,resa)) {
+				Log.d(TAG,"Reza was accepted ?" + resa.getAck());
+				return position;
+			}
+		}
+		return -1;
 	}
 }
